@@ -32,14 +32,18 @@ This product replaces the spreadsheet with a web app where agencies maintain the
 ```
 AppInventory/
 ├── README.md                          ← You are here — start here
-├── ProductDevelopment/                ← All product design artifacts
-│   ├── capabilities.json              ← Business capabilities (EasyEA)
-│   ├── business-rules.json            ← Configurable business rules
-│   ├── tech-stack.json                ← Technology decisions and rationale
-│   ├── data-model.json                ← Data entities and fields
-│   ├── roles-permissions.json         ← Roles and what each can do
-│   ├── ux-flow.json                   ← Screen-by-screen UX flow
-│   └── compliance-register.json       ← Compliance requirements tracker
+├── Dockerfile                         ← Multi-stage production container build
+├── docker-compose.yml                 ← Local dev: spins up app + PostgreSQL
+├── .env.example                       ← Environment variable template — copy to .env.local
+├── .gitignore                         ← Excludes secrets and build artifacts
+└── ProductDevelopment/                ← All product design artifacts
+    ├── capabilities.json              ← Business capabilities (EasyEA)
+    ├── business-rules.json            ← Configurable business rules
+    ├── tech-stack.json                ← Technology decisions and rationale
+    ├── data-model.json                ← Data entities and fields
+    ├── roles-permissions.json         ← Roles and what each can do
+    ├── ux-flow.json                   ← Screen-by-screen UX flow
+    └── compliance-register.json       ← Compliance requirements tracker
 ```
 
 ---
@@ -90,12 +94,21 @@ Every significant decision made during product design is documented here with ra
 |----------|-----------|
 | Next.js (React) | Full-stack capable, excellent Entra ID / MSAL integration, strong ecosystem |
 | Next.js API Routes for backend (v1) | Single codebase simplifies v1 deployment; can separate later if needed |
-| PostgreSQL on Azure | Open source, fully managed on Azure, well-suited to structured relational data |
-| Microsoft Entra ID (state tenant) | For Microsoft-tenant states: agencies already authenticate here — no new identity system required. See tech-stack.json for guidance on replacing with a different identity provider. |
-| Azure App Service hosting | Entra ID lives in Azure; same tenant simplifies security and compliance |
-| Azure Communication Services | Email notifications within same Azure tenant — no third-party dependency |
+| PostgreSQL | Open source, well-suited to structured relational data — runs locally via Docker, or managed on any cloud |
+| Microsoft Entra ID (state tenant) | For Microsoft-tenant states: agencies already authenticate here — no new identity system required. See `tech-stack.json` for guidance on replacing with a different identity provider. |
+| Azure App Service hosting | Recommended for Microsoft-tenant states — same tenant simplifies security and compliance. Any cloud or on-prem works when using containers. |
+| Azure Communication Services | Email notifications within Azure tenant — replaceable with any transactional email service |
 | Tailwind CSS | Fast to build with, maintainable, no heavyweight design system required |
 | USWDS (U.S. Web Design System) | Built for government, meets WCAG 2.2 AA, widely used by state agencies |
+
+### Containerization
+| Decision | Rationale |
+|----------|-----------|
+| Docker + docker-compose for local development | `docker-compose up` starts app and database in one command — lowest friction developer onboarding |
+| Multi-stage Dockerfile | Separate build and runtime stages — lean production image, no dev dependencies shipped |
+| Containerization is optional, not a mandate | States can run from code directly on any platform — containers are an enhancement for portability |
+| Three deployment paths supported | Run from code (any state), Docker (portable), Kubernetes/AKS (larger states with container infra) |
+| `.env.example` provided | Documents all required environment variables — copy to `.env.local` to get started |
 
 ### Data
 | Decision | Rationale |
@@ -190,12 +203,25 @@ During this product design, 5 improvements to the EasyEA framework were identifi
 
 ## For Developers Picking Up This Work
 
-1. **Read this README first** — it explains every decision and why it was made
-2. **Review `compliance-register.json`** — compliance requirements constrain implementation choices. Note: requirements listed are Washington State examples — replace with your state's mandates.
-3. **Review `data-model.json`** — understand the entities before writing any code
-4. **Review `roles-permissions.json`** — access control must be enforced at the API level, not just the UI
-5. **Review `business-rules.json`** — notification and alerting logic is driven by configurable rules, not hardcoded values
-6. **Contact the state IT authority infrastructure team** to provision Azure tenant, subscription, and identity provider group configuration before beginning deployment work
+**Local setup — get running in 3 steps:**
+```bash
+git clone https://github.com/roballred/AppInventory
+cp .env.example .env.local      # fill in your identity provider values
+docker-compose up               # app at http://localhost:3000
+```
+
+**Before writing any code, read these in order:**
+1. **This README** — every decision and why it was made
+2. **`compliance-register.json`** — compliance requirements constrain implementation choices. Washington State requirements are examples — replace with your state's mandates.
+3. **`data-model.json`** — understand the entities and relationships first
+4. **`roles-permissions.json`** — access control must be enforced at the API level, not just the UI
+5. **`business-rules.json`** — notification and alerting logic is driven by configurable rules, not hardcoded values
+
+**Before deploying:**
+- Provision cloud infrastructure (see `tech-stack.json` for decisions and assumptions)
+- Configure identity provider groups and role assignments
+- Complete privacy assessment (COMP-06) and security review (COMP-07)
+- Run accessibility audit against WCAG 2.2 AA (COMP-01)
 
 ---
 
