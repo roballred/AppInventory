@@ -21,7 +21,7 @@ export const DEV_USERS = [
     name: 'Dev Agency Admin',
     email: 'agency-admin@dev.local',
     role: 'agency_admin' as const,
-    agencyId: 'dev-agency-001',
+    agencyId: '00000000-0000-0000-0000-000000000001',
     agencyName: 'Dev Test Agency',
   },
   {
@@ -29,7 +29,7 @@ export const DEV_USERS = [
     name: 'Dev Submitter',
     email: 'submitter@dev.local',
     role: 'submitter' as const,
-    agencyId: 'dev-agency-001',
+    agencyId: '00000000-0000-0000-0000-000000000001',
     agencyName: 'Dev Test Agency',
   },
   {
@@ -37,7 +37,7 @@ export const DEV_USERS = [
     name: 'Dev Viewer',
     email: 'viewer@dev.local',
     role: 'viewer' as const,
-    agencyId: 'dev-agency-001',
+    agencyId: '00000000-0000-0000-0000-000000000001',
     agencyName: 'Dev Test Agency',
   },
 ]
