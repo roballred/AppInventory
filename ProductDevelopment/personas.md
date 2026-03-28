@@ -7,7 +7,7 @@ Every capability, design decision, and business rule should be traceable back to
 ---
 
 ## Jordan — The Overloaded IT Coordinator
-**System role:** Submitter | **Capabilities served:** CAP-01, CAP-03, CAP-04, CAP-05
+**System role:** Submitter | **Capabilities served:** CAP-01, CAP-03, CAP-04, CAP-05, CAP-09
 
 Jordan is an agency IT staff member with 20 responsibilities. The annual inventory is one of them — and the least enjoyable.
 
@@ -27,7 +27,7 @@ Jordan is an agency IT staff member with 20 responsibilities. The annual invento
 ---
 
 ## Maria — The Accountability-Driven IT Director
-**System role:** Agency Admin | **Capabilities served:** CAP-01, CAP-04, CAP-05, CAP-06
+**System role:** Agency Admin | **Capabilities served:** CAP-01, CAP-04, CAP-05, CAP-10
 
 Maria leads agency IT and signs off on the annual certification. She doesn't do the data entry but is accountable for its accuracy.
 
@@ -47,7 +47,7 @@ Maria leads agency IT and signs off on the annual certification. She doesn't do 
 ---
 
 ## Derek — The WaTech Portfolio Analyst
-**System role:** Platform Admin | **Capabilities served:** CAP-03, CAP-06, CAP-07
+**System role:** Platform Admin | **Capabilities served:** CAP-03, CAP-06, CAP-07, CAP-08
 
 Derek works at the state IT authority and is responsible for making sense of what agencies submit. Today, that means weeks of manual data cleanup before any analysis can begin.
 

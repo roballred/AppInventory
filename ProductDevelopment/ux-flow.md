@@ -1,8 +1,8 @@
 # State Application Inventory — UX Flow
 
 **Product:** State Application Inventory
-**Version:** v1
-**Last Updated:** 2026-03-27
+**Version:** v2
+**Last Updated:** 2026-03-28
 **Design System:** U.S. Web Design System (USWDS)
 **Accessibility Standard:** WCAG 2.2 AA
 
@@ -39,8 +39,21 @@ All users sign in through their existing state identity provider (single sign-on
 
 Applies to: Agency Admin, Submitter, Viewer
 
+### Work Queue — Jordan's First Screen (CAP-09)
+The first screen Jordan sees after login. Instead of a generic dashboard, Jordan sees a focused, prioritized list of records that need attention — nothing more.
+
+Each item in the queue shows the application name, what needs updating, and an estimated effort level (quick update vs. needs research). Items are sorted by urgency — critically stale records first, then warning-level records, then records with missing required fields.
+
+If Jordan has nothing to action, the queue shows a clear "all up to date" state — no hunting, no ambiguity.
+
+**Available actions:** Update a record directly from the queue, dismiss if already handled, view full application list
+
+> This screen is the product's most critical design decision. If Jordan doesn't find it useful in the first 30 seconds, the product fails.
+
+---
+
 ### Dashboard
-The first screen after login. Shows a summary of the agency's inventory at a glance.
+The first screen after login for Agency Admins and Viewers. Shows a summary of the agency's inventory at a glance.
 
 - Total number of applications
 - Count of stale records
@@ -99,6 +112,31 @@ A guided, step-by-step process for the agency admin to certify the agency's inve
 
 ---
 
+### Agency Risk Dashboard — Maria's View (CAP-10)
+A risk-focused view of the agency's inventory surfaced automatically for Agency Admins. Maria sees what needs attention without asking her team or interpreting raw data.
+
+Risk is surfaced in four categories:
+
+| Category | What it shows |
+|----------|--------------|
+| Aging Technology | Applications flagged as aging or running unsupported OS versions |
+| Unsupported Versions | Applications where the vendor no longer provides support |
+| AI-Enabled Applications | All applications with AI or generative AI flags — for awareness and policy compliance |
+| Approaching Staleness | Records that will trigger a critical stale alert within 30 days |
+
+Each item links directly to the application record. Maria can see the risk, understand the context, and act — or assign it to Jordan — without leaving the screen.
+
+**Available actions:** View application detail, assign for review, export risk summary
+
+---
+
+### Search Results (CAP-01)
+When a user searches for an application by name, vendor, or technology type, results appear in a clean list with key details visible at a glance — name, lifecycle status, vendor, and last reviewed date. Sam can find what they need without scrolling the full inventory.
+
+**Available actions:** View application detail, refine search, filter results
+
+---
+
 ### Notifications
 An in-app notification center listing all alerts for the user, with read and unread indicators. Each notification links directly to the relevant application record.
 
@@ -118,6 +156,22 @@ A statewide overview showing summary data across all agencies.
 - Certification completion status by agency for the current year
 
 **Available actions:** Drill into an agency, view portfolio intelligence, manage business rules, manage users
+
+---
+
+### Data Quality Monitoring (CAP-08)
+A live operational view of data quality across all agencies. Derek can see at a glance which agencies need follow-up before bad data becomes a reporting problem.
+
+| View | What it shows |
+|------|--------------|
+| Stale Records by Agency | Which agencies have the most overdue records |
+| Missing Required Fields | Agencies with incomplete application records |
+| Inconsistent Values | Patterns of free-text entries or values that don't match controlled vocabulary |
+| Retired but Active | Applications still listed as active that appear to be retired |
+
+Derek can drill into any agency to see the specific records causing issues, then follow up directly.
+
+**Available actions:** Drill into agency, export data quality report, flag agency for follow-up
 
 ---
 
