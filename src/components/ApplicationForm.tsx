@@ -2,13 +2,44 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Application, LifecycleStatus } from '@/lib/db/schema'
+import type { Application, LifecycleStatus, BusinessCriticality, CoreBusinessFunction } from '@/lib/db/schema'
 
 const LIFECYCLE_OPTIONS: { value: LifecycleStatus; label: string }[] = [
   { value: 'in_development', label: 'In Development' },
   { value: 'in_production', label: 'In Production' },
   { value: 'retirement_in_progress', label: 'Retirement in Progress' },
   { value: 'retired_from_inventory', label: 'Retired from Inventory' },
+]
+
+const BUSINESS_CRITICALITY_OPTIONS: { value: BusinessCriticality; label: string }[] = [
+  { value: 'business_essential', label: 'Business Essential' },
+  { value: 'historical', label: 'Historical' },
+  { value: 'mission_critical', label: 'Mission Critical' },
+  { value: 'user_productivity', label: 'User Productivity' },
+]
+
+const CORE_BUSINESS_FUNCTION_OPTIONS: { value: CoreBusinessFunction; label: string }[] = [
+  { value: 'civil_engagement_and_law', label: 'Civil Engagement & Law' },
+  { value: 'commerce', label: 'Commerce' },
+  { value: 'communications', label: 'Communications' },
+  { value: 'customer_service', label: 'Customer Service' },
+  { value: 'education', label: 'Education' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'fiscal_and_revenue', label: 'Fiscal & Revenue' },
+  { value: 'health_and_human_services', label: 'Health & Human Services' },
+  { value: 'health_safety_security_environmental', label: 'Health / Safety / Security / Environmental' },
+  { value: 'land_management_and_conservation', label: 'Land Management & Conservation' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'manufacturing_and_delivery', label: 'Manufacturing & Delivery' },
+  { value: 'marketing_and_sales', label: 'Marketing & Sales' },
+  { value: 'military', label: 'Military' },
+  { value: 'product_management', label: 'Product Management' },
+  { value: 'property_and_facility', label: 'Property & Facility' },
+  { value: 'public_safety', label: 'Public Safety' },
+  { value: 'risk_audit_and_compliance', label: 'Risk / Audit & Compliance' },
+  { value: 'transportation_and_infrastructure', label: 'Transportation & Infrastructure' },
+  { value: 'vendor_and_procurement', label: 'Vendor & Procurement' },
+  { value: 'workforce', label: 'Workforce' },
 ]
 
 interface ApplicationFormProps {
@@ -20,6 +51,10 @@ interface ApplicationFormProps {
 interface FormErrors {
   name?: string
   lifecycleStatus?: string
+  version?: string
+  manufacturerVendor?: string
+  technicalOwner?: string
+  inServiceDate?: string
   general?: string
 }
 
@@ -76,6 +111,9 @@ export default function ApplicationForm({
   const [contractNumber, setContractNumber] = useState(application?.contractNumber ?? '')
   const [licenseNumber, setLicenseNumber] = useState(application?.licenseNumber ?? '')
   const [technicalOwner, setTechnicalOwner] = useState(application?.technicalOwner ?? '')
+  const [technicalOwnerEmail, setTechnicalOwnerEmail] = useState(
+    application?.technicalOwnerEmail ?? ''
+  )
   const [inServiceDate, setInServiceDate] = useState(application?.inServiceDate ?? '')
   const [retirementDate, setRetirementDate] = useState(application?.retirementDate ?? '')
   const [isUnsupportedVersion, setIsUnsupportedVersion] = useState(
@@ -87,6 +125,13 @@ export default function ApplicationForm({
   )
   const [isAiEnabled, setIsAiEnabled] = useState(application?.isAiEnabled ?? false)
   const [isGenerativeAi, setIsGenerativeAi] = useState(application?.isGenerativeAi ?? false)
+  const [riskFlagsVerified, setRiskFlagsVerified] = useState(false)
+  const [businessCriticality, setBusinessCriticality] = useState<BusinessCriticality | ''>(
+    application?.businessCriticality ?? ''
+  )
+  const [coreBusinessFunction, setCoreBusinessFunction] = useState<CoreBusinessFunction | ''>(
+    application?.coreBusinessFunction ?? ''
+  )
 
   const [errors, setErrors] = useState<FormErrors>({})
   const [loading, setLoading] = useState(false)
@@ -95,6 +140,10 @@ export default function ApplicationForm({
     const newErrors: FormErrors = {}
     if (!name.trim()) newErrors.name = 'Name is required'
     if (!lifecycleStatus) newErrors.lifecycleStatus = 'Lifecycle status is required'
+    if (!version.trim()) newErrors.version = 'Version is required'
+    if (!manufacturerVendor.trim()) newErrors.manufacturerVendor = 'Manufacturer / Vendor is required'
+    if (!technicalOwner.trim()) newErrors.technicalOwner = 'Technical Owner is required'
+    if (!inServiceDate) newErrors.inServiceDate = 'In Service Date is required'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -119,6 +168,7 @@ export default function ApplicationForm({
       contractNumber: contractNumber.trim() || null,
       licenseNumber: licenseNumber.trim() || null,
       technicalOwner: technicalOwner.trim() || null,
+      technicalOwnerEmail: technicalOwnerEmail.trim() || null,
       inServiceDate: inServiceDate || null,
       retirementDate: retirementDate || null,
       isUnsupportedVersion,
@@ -126,6 +176,9 @@ export default function ApplicationForm({
       isAgingTechnology,
       isAiEnabled,
       isGenerativeAi,
+      riskFlagsVerified,
+      businessCriticality: businessCriticality || null,
+      coreBusinessFunction: coreBusinessFunction || null,
     }
 
     try {
@@ -180,6 +233,7 @@ export default function ApplicationForm({
                 className={inputClass}
                 placeholder="Application name"
                 maxLength={255}
+                required
               />
             </Field>
           </div>
@@ -196,7 +250,7 @@ export default function ApplicationForm({
             </Field>
           </div>
 
-          <Field label="Version">
+          <Field label="Version" required error={errors.version}>
             <input
               type="text"
               value={version}
@@ -204,6 +258,7 @@ export default function ApplicationForm({
               className={inputClass}
               placeholder="e.g. 3.2.1"
               maxLength={100}
+              required
             />
           </Field>
 
@@ -212,6 +267,7 @@ export default function ApplicationForm({
               value={lifecycleStatus}
               onChange={(e) => setLifecycleStatus(e.target.value as LifecycleStatus)}
               className={inputClass}
+              required
             >
               {LIFECYCLE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -231,13 +287,14 @@ export default function ApplicationForm({
           </h2>
         </div>
         <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <Field label="Manufacturer / Vendor">
+          <Field label="Manufacturer / Vendor" required error={errors.manufacturerVendor}>
             <input
               type="text"
               value={manufacturerVendor}
               onChange={(e) => setManufacturerVendor(e.target.value)}
               className={inputClass}
               maxLength={255}
+              required
             />
           </Field>
 
@@ -271,13 +328,25 @@ export default function ApplicationForm({
             />
           </Field>
 
-          <Field label="Technical Owner">
+          <Field label="Technical Owner" required error={errors.technicalOwner}>
             <input
               type="text"
               value={technicalOwner}
               onChange={(e) => setTechnicalOwner(e.target.value)}
               className={inputClass}
               maxLength={255}
+              required
+            />
+          </Field>
+
+          <Field label="Technical Owner Email">
+            <input
+              type="email"
+              value={technicalOwnerEmail}
+              onChange={(e) => setTechnicalOwnerEmail(e.target.value)}
+              className={inputClass}
+              maxLength={255}
+              placeholder="owner@agency.gov"
             />
           </Field>
 
@@ -301,12 +370,13 @@ export default function ApplicationForm({
             />
           </Field>
 
-          <Field label="In Service Date">
+          <Field label="In Service Date" required error={errors.inServiceDate}>
             <input
               type="date"
               value={inServiceDate ?? ''}
               onChange={(e) => setInServiceDate(e.target.value)}
               className={inputClass}
+              required
             />
           </Field>
 
@@ -321,15 +391,54 @@ export default function ApplicationForm({
         </div>
       </section>
 
+      {/* Classification */}
+      <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            Classification
+          </h2>
+        </div>
+        <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <Field label="Business Criticality">
+            <select
+              value={businessCriticality}
+              onChange={(e) => setBusinessCriticality(e.target.value as BusinessCriticality | '')}
+              className={inputClass}
+            >
+              <option value="">— Select —</option>
+              {BUSINESS_CRITICALITY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Core Business Function">
+            <select
+              value={coreBusinessFunction}
+              onChange={(e) =>
+                setCoreBusinessFunction(e.target.value as CoreBusinessFunction | '')
+              }
+              className={inputClass}
+            >
+              <option value="">— Select —</option>
+              {CORE_BUSINESS_FUNCTION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      </section>
+
       {/* Risk Flags */}
       <section className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
             Risk Flags
           </h2>
-          <p className="text-xs text-gray-500 mt-1">
-            Saving any change to these fields will mark them as explicitly verified.
-          </p>
         </div>
         <div className="px-5 py-4 space-y-3">
           <label className={checkboxRowClass}>
@@ -381,6 +490,26 @@ export default function ApplicationForm({
             />
             <span className="text-sm text-gray-700">Generative AI</span>
           </label>
+
+          {/* Risk flags review confirmation */}
+          <div className="pt-3 border-t border-gray-100 mt-3">
+            <p className="text-xs text-gray-500 mb-2">
+              {application?.riskFieldsLastVerifiedAt
+                ? `Last verified: ${new Date(application.riskFieldsLastVerifiedAt).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
+                : 'Never verified — risk flags have not been explicitly reviewed since record creation.'}
+            </p>
+            <label className={checkboxRowClass}>
+              <input
+                type="checkbox"
+                checked={riskFlagsVerified}
+                onChange={(e) => setRiskFlagsVerified(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700 font-medium">
+                I have reviewed all risk flags above
+              </span>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -395,7 +524,13 @@ export default function ApplicationForm({
         </button>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            if (isEditing) {
+              router.push(`/dashboard/applications/${application.id}`)
+            } else {
+              router.push('/dashboard/applications')
+            }
+          }}
           disabled={loading}
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
         >

@@ -19,6 +19,44 @@ export const lifecycleStatusEnum = pgEnum('lifecycle_status', [
   'retired_from_inventory',
 ])
 
+export const businessCriticalityEnum = pgEnum('business_criticality', [
+  'business_essential',
+  'historical',
+  'mission_critical',
+  'user_productivity',
+])
+
+export const coreBusinessFunctionEnum = pgEnum('core_business_function', [
+  'civil_engagement_and_law',
+  'commerce',
+  'communications',
+  'customer_service',
+  'education',
+  'finance',
+  'fiscal_and_revenue',
+  'health_and_human_services',
+  'health_safety_security_environmental',
+  'land_management_and_conservation',
+  'legal',
+  'manufacturing_and_delivery',
+  'marketing_and_sales',
+  'military',
+  'product_management',
+  'property_and_facility',
+  'public_safety',
+  'risk_audit_and_compliance',
+  'transportation_and_infrastructure',
+  'vendor_and_procurement',
+  'workforce',
+])
+
+export const auditActionEnum = pgEnum('audit_action', [
+  'created',
+  'updated',
+  'retired',
+  'reverted',
+])
+
 // ─── agencies ────────────────────────────────────────────────────────────────
 
 export const agencies = pgTable('agencies', {
@@ -50,6 +88,7 @@ export const applications = pgTable('applications', {
   contractNumber: varchar('contract_number', { length: 255 }),
   licenseNumber: varchar('license_number', { length: 255 }),
   technicalOwner: varchar('technical_owner', { length: 255 }),
+  technicalOwnerEmail: varchar('technical_owner_email', { length: 255 }),
   inServiceDate: date('in_service_date'),
   retirementDate: date('retirement_date'),
   isUnsupportedVersion: boolean('is_unsupported_version').default(false).notNull(),
@@ -62,6 +101,8 @@ export const applications = pgTable('applications', {
    * Risk flag fields: isUnsupportedVersion, isUpdatable, isAgingTechnology, isAiEnabled, isGenerativeAi
    */
   riskFieldsLastVerifiedAt: timestamp('risk_fields_last_verified_at'),
+  businessCriticality: businessCriticalityEnum('business_criticality'),
+  coreBusinessFunction: coreBusinessFunctionEnum('core_business_function'),
   lastReviewedAt: timestamp('last_reviewed_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdById: varchar('created_by_id', { length: 255 }).notNull(),
@@ -78,11 +119,20 @@ export const applicationAuditLog = pgTable('application_audit_log', {
     .references(() => applications.id),
   userId: varchar('user_id', { length: 255 }).notNull(),
   userEmail: varchar('user_email', { length: 255 }).notNull(),
-  /** Values: 'created' | 'updated' | 'retired' | 'reverted' */
-  action: varchar('action', { length: 50 }).notNull(),
+  action: auditActionEnum('action').notNull(),
   /** Shape: { fieldName: { old: value, new: value } } */
   changedFields: jsonb('changed_fields'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// ─── businessRules ────────────────────────────────────────────────────────────
+
+export const businessRules = pgTable('business_rules', {
+  key: varchar('key', { length: 100 }).primaryKey(),
+  value: varchar('value', { length: 500 }).notNull(),
+  description: text('description'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedById: varchar('updated_by_id', { length: 255 }),
 })
 
 // ─── Exported types ───────────────────────────────────────────────────────────
@@ -90,5 +140,8 @@ export const applicationAuditLog = pgTable('application_audit_log', {
 export type Agency = typeof agencies.$inferSelect
 export type Application = typeof applications.$inferSelect
 export type ApplicationAuditLog = typeof applicationAuditLog.$inferSelect
+export type BusinessRule = typeof businessRules.$inferSelect
 export type NewApplication = typeof applications.$inferInsert
 export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
+export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]
+export type CoreBusinessFunction = (typeof coreBusinessFunctionEnum.enumValues)[number]

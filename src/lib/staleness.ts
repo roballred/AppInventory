@@ -16,13 +16,19 @@ export function getDaysSinceReview(lastReviewedAt: Date): number {
 
 /**
  * Returns the staleness level for a record based on its last reviewed date.
- * - 'critical': >= 180 days
- * - 'warning':  >= 90 days
- * - 'current':  < 90 days
+ * - 'critical': >= critical threshold days
+ * - 'warning':  >= warning threshold days
+ * - 'current':  < warning threshold days
+ *
+ * Accepts an optional thresholds parameter so callers can pass DB-fetched values.
+ * Defaults to STALENESS_THRESHOLDS for backward compatibility and tests.
  */
-export function getStaleness(lastReviewedAt: Date): StalenessLevel {
+export function getStaleness(
+  lastReviewedAt: Date,
+  thresholds: { warning: number; critical: number } = STALENESS_THRESHOLDS
+): StalenessLevel {
   const days = getDaysSinceReview(lastReviewedAt)
-  if (days >= STALENESS_THRESHOLDS.critical) return 'critical'
-  if (days >= STALENESS_THRESHOLDS.warning) return 'warning'
+  if (days >= thresholds.critical) return 'critical'
+  if (days >= thresholds.warning) return 'warning'
   return 'current'
 }

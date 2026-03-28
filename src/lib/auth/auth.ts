@@ -49,6 +49,10 @@ export const authOptions: NextAuthOptions = {
       ],
 
   callbacks: {
+    // KNOWN LIMITATION (issue #14): Role and agencyId are embedded in the JWT at sign-in.
+    // Changes made by a platform admin take effect on the user's next sign-in (max 8 hours).
+    // Before CAP-05 (certification), add server-side role re-validation for sensitive operations.
+    // See: https://github.com/roballred/AppInventory/issues/14
     async jwt({ token, user }) {
       // On sign-in, attach role and agency to the JWT
       if (user) {

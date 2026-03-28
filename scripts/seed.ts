@@ -203,6 +203,55 @@ async function seed() {
     console.log('  Skipped: Other Agency App (already exists)')
   }
 
+  // ── Business Rules ─────────────────────────────────────────────────────────
+
+  console.log('Seeding business rules...')
+
+  type BusinessRuleSeed = typeof schema.businessRules.$inferInsert
+
+  const defaultRules: BusinessRuleSeed[] = [
+    {
+      key: 'staleness_warning_days',
+      value: '90',
+      description: 'Days before a record triggers a stale warning notification',
+    },
+    {
+      key: 'staleness_critical_days',
+      value: '180',
+      description: 'Days before a record is critically stale and blocks certification',
+    },
+    {
+      key: 'certification_reminder_days',
+      value: '30',
+      description: 'Days before certification deadline to send reminder notifications',
+    },
+    {
+      key: 'certification_deadline_month',
+      value: '9',
+      description: 'Month of annual certification deadline (1-12)',
+    },
+    {
+      key: 'certification_deadline_day',
+      value: '30',
+      description: 'Day of annual certification deadline',
+    },
+  ]
+
+  for (const rule of defaultRules) {
+    const existing = await db
+      .select()
+      .from(schema.businessRules)
+      .where(eq(schema.businessRules.key, rule.key))
+      .then((rows) => rows[0])
+
+    if (!existing) {
+      await db.insert(schema.businessRules).values(rule)
+      console.log(`  Created: ${rule.key}`)
+    } else {
+      console.log(`  Skipped: ${rule.key} (already exists)`)
+    }
+  }
+
   console.log('Seed complete.')
   await pool.end()
 }

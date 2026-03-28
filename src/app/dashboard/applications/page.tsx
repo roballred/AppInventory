@@ -1,12 +1,13 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { eq, and, ilike, asc } from 'drizzle-orm'
+import { eq, and, ilike, asc, lt, count } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
 import { applications } from '@/lib/db/schema'
 import type { LifecycleStatus } from '@/lib/db/schema'
 import { getStaleness, getDaysSinceReview } from '@/lib/staleness'
+import { getStalenessThresholds } from '@/lib/business-rules'
 import { getAgencyFilter, canEditApplication } from '@/lib/permissions'
 import StalenessIndicator from '@/components/StalenessIndicator'
 import clsx from 'clsx'
@@ -25,11 +26,15 @@ const LIFECYCLE_VALUES: LifecycleStatus[] = [
   'retired_from_inventory',
 ]
 
+const PAGE_SIZE = 25
+
 interface SearchParams {
   lifecycleStatus?: string
   staleness?: string
   aiEnabled?: string
   search?: string
+  vendor?: string
+  page?: string
 }
 
 export default async function ApplicationsPage({
@@ -42,6 +47,11 @@ export default async function ApplicationsPage({
 
   const canEdit = canEditApplication(session)
   const agencyFilter = getAgencyFilter(session)
+
+  const thresholds = await getStalenessThresholds()
+
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
+  const offset = (page - 1) * PAGE_SIZE
 
   // Build where conditions
   const conditions = []
@@ -67,23 +77,44 @@ export default async function ApplicationsPage({
     conditions.push(ilike(applications.name, `%${searchParams.search}%`))
   }
 
+  if (searchParams.vendor) {
+    conditions.push(ilike(applications.manufacturerVendor, `%${searchParams.vendor}%`))
+  }
+
+  // Apply staleness filter at DB level
+  if (searchParams.staleness === 'critical') {
+    const cutoff = new Date(Date.now() - thresholds.critical * 24 * 60 * 60 * 1000)
+    conditions.push(lt(applications.lastReviewedAt, cutoff))
+  } else if (searchParams.staleness === 'warning') {
+    const warnCutoff = new Date(Date.now() - thresholds.warning * 24 * 60 * 60 * 1000)
+    conditions.push(lt(applications.lastReviewedAt, warnCutoff))
+  }
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+  // Count total for pagination
+  const [{ value: totalCount }] = await db
+    .select({ value: count() })
+    .from(applications)
+    .where(whereClause)
+
+  const total = Number(totalCount)
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
   const rows = await db
     .select()
     .from(applications)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .where(whereClause)
     .orderBy(asc(applications.lastReviewedAt))
+    .limit(PAGE_SIZE)
+    .offset(offset)
 
-  // Compute staleness + apply post-query staleness filter
-  const items = rows
-    .map((app) => ({
-      ...app,
-      staleness: getStaleness(app.lastReviewedAt),
-      daysSinceReview: getDaysSinceReview(app.lastReviewedAt),
-    }))
-    .filter((app) => {
-      if (!searchParams.staleness) return true
-      return app.staleness === searchParams.staleness
-    })
+  // Compute staleness
+  const items = rows.map((app) => ({
+    ...app,
+    staleness: getStaleness(app.lastReviewedAt, thresholds),
+    daysSinceReview: getDaysSinceReview(app.lastReviewedAt),
+  }))
 
   // Build filter URL helper
   function filterUrl(overrides: SearchParams) {
@@ -95,6 +126,9 @@ export default async function ApplicationsPage({
     const qs = params.toString()
     return `/dashboard/applications${qs ? `?${qs}` : ''}`
   }
+
+  const showingFrom = total === 0 ? 0 : offset + 1
+  const showingTo = Math.min(offset + PAGE_SIZE, total)
 
   return (
     <div className="space-y-5 max-w-6xl">
@@ -124,6 +158,21 @@ export default async function ApplicationsPage({
             type="text"
             defaultValue={searchParams.search ?? ''}
             placeholder="Application name..."
+            className="block w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* Vendor search */}
+        <div className="flex-1 min-w-40">
+          <label htmlFor="vendor" className="block text-xs font-medium text-gray-600 mb-1">
+            Vendor
+          </label>
+          <input
+            id="vendor"
+            name="vendor"
+            type="text"
+            defaultValue={searchParams.vendor ?? ''}
+            placeholder="Vendor name..."
             className="block w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -160,8 +209,8 @@ export default async function ApplicationsPage({
             className="block border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All</option>
-            <option value="warning">Warning (90+ days)</option>
-            <option value="critical">Critical (180+ days)</option>
+            <option value="warning">Warning ({thresholds.warning}+ days)</option>
+            <option value="critical">Critical ({thresholds.critical}+ days)</option>
           </select>
         </div>
 
@@ -280,8 +329,43 @@ export default async function ApplicationsPage({
               })}
             </tbody>
           </table>
-          <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
-            {items.length} application{items.length !== 1 ? 's' : ''}
+
+          {/* Footer: count + pagination */}
+          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-xs text-gray-500">
+              Showing {showingFrom}–{showingTo} of {total} application{total !== 1 ? 's' : ''}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                {page > 1 ? (
+                  <Link
+                    href={filterUrl({ page: String(page - 1) })}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    &larr; Prev
+                  </Link>
+                ) : (
+                  <span className="px-3 py-1 text-xs font-medium text-gray-400 bg-white border border-gray-200 rounded-md cursor-not-allowed">
+                    &larr; Prev
+                  </span>
+                )}
+                <span className="text-xs text-gray-500">
+                  Page {page} of {totalPages}
+                </span>
+                {page < totalPages ? (
+                  <Link
+                    href={filterUrl({ page: String(page + 1) })}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    Next &rarr;
+                  </Link>
+                ) : (
+                  <span className="px-3 py-1 text-xs font-medium text-gray-400 bg-white border border-gray-200 rounded-md cursor-not-allowed">
+                    Next &rarr;
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

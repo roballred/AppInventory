@@ -4,7 +4,7 @@ import { and, eq, desc } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
 import { applications, applicationAuditLog } from '@/lib/db/schema'
-import type { LifecycleStatus } from '@/lib/db/schema'
+import type { LifecycleStatus, BusinessCriticality, CoreBusinessFunction } from '@/lib/db/schema'
 import {
   canEditApplication,
   canRetireApplication,
@@ -12,6 +12,7 @@ import {
   getAgencyFilter,
 } from '@/lib/permissions'
 import { getStaleness, getDaysSinceReview } from '@/lib/staleness'
+import { getStalenessThresholds } from '@/lib/business-rules'
 
 const RISK_FLAG_FIELDS = [
   'isUnsupportedVersion',
@@ -60,7 +61,8 @@ export async function GET(
     .where(eq(applicationAuditLog.applicationId, params.id))
     .orderBy(desc(applicationAuditLog.createdAt))
 
-  const staleness = getStaleness(app.lastReviewedAt)
+  const thresholds = await getStalenessThresholds()
+  const staleness = getStaleness(app.lastReviewedAt, thresholds)
   const daysSinceReview = getDaysSinceReview(app.lastReviewedAt)
 
   return NextResponse.json({ ...app, staleness, daysSinceReview, auditLog })
@@ -108,10 +110,8 @@ export async function PUT(
   const user = session.user as any
   const now = new Date()
 
-  // Determine if any risk flag fields changed
-  const riskFlagChanged = RISK_FLAG_FIELDS.some(
-    (field) => field in body && body[field] !== (existing as Record<string, unknown>)[field]
-  )
+  // Only update riskFieldsLastVerifiedAt when the user explicitly signals review
+  const riskFlagsVerified = body.riskFlagsVerified === true
 
   // Build changed fields map for audit log
   const changedFields: Record<string, { old: unknown; new: unknown }> = {}
@@ -127,6 +127,7 @@ export async function PUT(
     'contractNumber',
     'licenseNumber',
     'technicalOwner',
+    'technicalOwnerEmail',
     'inServiceDate',
     'retirementDate',
     'isUnsupportedVersion',
@@ -134,6 +135,8 @@ export async function PUT(
     'isAgingTechnology',
     'isAiEnabled',
     'isGenerativeAi',
+    'businessCriticality',
+    'coreBusinessFunction',
   ] as const
 
   type UpdatableField = (typeof updatable)[number]
@@ -151,6 +154,7 @@ export async function PUT(
     contractNumber: 'contractNumber',
     licenseNumber: 'licenseNumber',
     technicalOwner: 'technicalOwner',
+    technicalOwnerEmail: 'technicalOwnerEmail',
     inServiceDate: 'inServiceDate',
     retirementDate: 'retirementDate',
     isUnsupportedVersion: 'isUnsupportedVersion',
@@ -158,6 +162,8 @@ export async function PUT(
     isAgingTechnology: 'isAgingTechnology',
     isAiEnabled: 'isAiEnabled',
     isGenerativeAi: 'isGenerativeAi',
+    businessCriticality: 'businessCriticality',
+    coreBusinessFunction: 'coreBusinessFunction',
   }
 
   for (const field of updatable) {
@@ -181,7 +187,7 @@ export async function PUT(
     updatedById: user.email ?? user.id ?? 'unknown',
   }
 
-  if (riskFlagChanged) {
+  if (riskFlagsVerified) {
     updateData.riskFieldsLastVerifiedAt = now
   }
 
@@ -266,52 +272,15 @@ export async function PATCH(
     newStatus = 'retired_from_inventory'
     auditAction = 'retired'
   } else {
-    // revert — restore previous lifecycle status
-    // Use the previousLifecycleStatus from the request body (client provides this),
-    // falling back to querying the audit log for the last non-retired status
-    let prevStatus = body.previousLifecycleStatus as LifecycleStatus | undefined
-
-    if (!prevStatus) {
-      // Find the most recent audit entry before this retirement where lifecycleStatus changed
-      const auditEntries = await db
-        .select()
-        .from(applicationAuditLog)
-        .where(eq(applicationAuditLog.applicationId, params.id))
-        .orderBy(desc(applicationAuditLog.createdAt))
-
-      for (const entry of auditEntries) {
-        const changed = entry.changedFields as Record<
-          string,
-          { old: unknown; new: unknown }
-        > | null
-        if (changed?.lifecycleStatus?.old) {
-          const candidate = changed.lifecycleStatus.old as LifecycleStatus
-          if (candidate !== 'retired_from_inventory') {
-            prevStatus = candidate
-            break
-          }
-        }
-        // For 'retired' action entries, look at the changed field
-        if (entry.action === 'retired') {
-          // The status before retirement
-          const changedData = entry.changedFields as Record<
-            string,
-            { old: unknown; new: unknown }
-          > | null
-          if (changedData?.lifecycleStatus?.old) {
-            prevStatus = changedData.lifecycleStatus.old as LifecycleStatus
-            break
-          }
-        }
-      }
-
-      // Default fallback
-      if (!prevStatus) {
-        prevStatus = 'in_production'
-      }
+    // revert — previousLifecycleStatus is required
+    if (!body.previousLifecycleStatus) {
+      return NextResponse.json(
+        { error: 'previousLifecycleStatus is required when action is "revert"' },
+        { status: 400 }
+      )
     }
 
-    newStatus = prevStatus as LifecycleStatus
+    newStatus = body.previousLifecycleStatus as LifecycleStatus
     auditAction = 'reverted'
   }
 

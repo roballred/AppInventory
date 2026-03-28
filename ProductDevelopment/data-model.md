@@ -38,7 +38,7 @@ Represents a state agency participating in the inventory program.
 |-------|-------------|
 | Name | Official agency name |
 | Agency Number | Official agency identifier from the state IT authority |
-| Identity Group | Links the agency to its users via the state identity provider |
+| Identity Group | Reserved for future use — will link the agency to its users via the state identity provider's group claims for automatic agency assignment during sign-in. Not yet implemented. Manual role assignment is used in v1. |
 
 ---
 
@@ -90,6 +90,7 @@ A single application record in an agency's inventory. The v1 field set focuses o
 | Aging Technology | Yes/No — flagged as aging or legacy |
 | AI Enabled | Yes/No — does this application use AI? |
 | Generative AI | Yes/No — does it specifically use generative AI? |
+| Technical Owner Email | Email address of the technical owner — used by the notification engine to route stale record alerts. Required before CAP-04 (notifications) can route alerts to the correct person. |
 
 **Risk Field Verification**
 
