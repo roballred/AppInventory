@@ -1,0 +1,113 @@
+{
+  "version": "v1",
+  "created": "2026-03-27",
+  "product": "WaTech Application Inventory",
+  "description": "Compliance requirements register for the WaTech Application Inventory web app. Tracks all applicable policies, standards, and legal requirements. Each requirement identifies its source, what it mandates, how the product addresses it, and its current status.",
+  "note": "This register should be reviewed at the start of each development sprint and updated whenever new policies or standards are identified.",
+
+  "requirements": [
+
+    {
+      "id": "COMP-01",
+      "name": "Digital Accessibility — WCAG 2.2 AA",
+      "source": "USER-01 — WaTech Digital Accessibility Policy",
+      "reference": "https://watech.wa.gov/policies/digital-accessibility-policy",
+      "mandate": "All state agency digital services must meet WCAG 2.2 AA by July 1, 2026. Employee-facing tools must also meet WCAG 2.2 AA by July 1, 2029.",
+      "productResponse": "USWDS component library used throughout — built to WCAG 2.2 AA. All custom components must be audited before release.",
+      "testingRequired": "Automated accessibility scan (axe or similar) + manual screen reader testing before each release",
+      "deadline": "2026-07-01",
+      "status": "In design — not yet tested"
+    },
+
+    {
+      "id": "COMP-02",
+      "name": "IT Portfolio Management — Application Inventory",
+      "source": "MGMT-01-01-S — Application Standard",
+      "reference": "https://watech.wa.gov/policies/technology-portfolio-foundation",
+      "mandate": "All state agencies must maintain an accurate application inventory and submit it as part of the annual certification process.",
+      "productResponse": "Core product purpose. Application inventory fields derived directly from MGMT-01-01-S minimum data requirements.",
+      "testingRequired": "Validate all required fields from MGMT-01-01-S are captured in data model before launch",
+      "deadline": "Annual — September 30",
+      "status": "Addressed in data model v1"
+    },
+
+    {
+      "id": "COMP-03",
+      "name": "IT Portfolio Management — Infrastructure Inventory",
+      "source": "MGMT-01-02-S — Infrastructure Standard",
+      "reference": "https://watech.wa.gov/policies/technology-portfolio-foundation",
+      "mandate": "All state agencies must maintain an accurate infrastructure inventory.",
+      "productResponse": "Out of scope for v1. Infrastructure inventory to be addressed in a future release.",
+      "testingRequired": "N/A for v1",
+      "deadline": "Annual — September 30",
+      "status": "Deferred to future release"
+    },
+
+    {
+      "id": "COMP-04",
+      "name": "Statewide IT Portfolio — Legislative Reporting",
+      "source": "RCW 43.105.341 — Information Technology Portfolios",
+      "reference": "https://app.leg.wa.gov/rcw/default.aspx?cite=43.105.341",
+      "mandate": "WaTech must maintain a statewide IT portfolio that links agency objectives, business plans, and technology. Used for resource allocation and prioritization by the Governor and Legislature.",
+      "productResponse": "Portfolio Intelligence capability (CAP-07) enables cross-agency analysis and reporting to support legislative reporting requirements.",
+      "testingRequired": "Verify Portfolio Intelligence exports meet reporting format requirements before first certification cycle",
+      "deadline": "Ongoing",
+      "status": "Addressed in CAP-07 — not yet built"
+    },
+
+    {
+      "id": "COMP-05",
+      "name": "Annual Certification Deadline",
+      "source": "WaTech Annual Certification Process",
+      "reference": "https://watech.wa.gov/2024-annual-certification",
+      "mandate": "Agencies must submit application and infrastructure inventories by September 30 each year.",
+      "productResponse": "Annual Certification capability (CAP-05) enforces the September 30 deadline via business rules. Stale records block submission. Reminder notifications sent at 30 and 7 days prior.",
+      "testingRequired": "Test certification deadline enforcement and notification triggers before first certification cycle",
+      "deadline": "Annual — September 30",
+      "status": "Addressed in business-rules.json and CAP-05"
+    },
+
+    {
+      "id": "COMP-06",
+      "name": "Privacy — Personal Information Collection",
+      "source": "WaTech Privacy and Data Protection Policy",
+      "reference": "https://watech.wa.gov/policies",
+      "mandate": "Systems collecting personal information must document data collection practices and comply with state privacy requirements.",
+      "productResponse": "App collects user name and email via Entra ID. No resident personal information collected. Privacy assessment required before launch to confirm scope.",
+      "testingRequired": "Complete WaTech privacy assessment before launch",
+      "deadline": "Before launch",
+      "status": "Needs privacy assessment"
+    },
+
+    {
+      "id": "COMP-07",
+      "name": "Security — Identity and Authentication",
+      "source": "SEC-06-01-S — Identification and Authentication Standard",
+      "reference": "https://watech.wa.gov/policies",
+      "mandate": "State systems must enforce strong identity and authentication controls.",
+      "productResponse": "Microsoft Entra ID SSO with WA State tenant. MFA enforced at the Entra ID level — not custom built. Role-based access enforced at application level.",
+      "testingRequired": "Security review of Entra ID configuration and role enforcement before launch",
+      "deadline": "Before launch",
+      "status": "Architecture decided — not yet implemented"
+    },
+
+    {
+      "id": "COMP-08",
+      "name": "AI Application Identification",
+      "source": "WaTech 2024 Annual Certification — AI Inventory Requirement",
+      "reference": "https://watech.wa.gov/2024-annual-certification",
+      "mandate": "Agencies must identify applications using AI and specifically flag applications using Generative AI.",
+      "productResponse": "is_ai_enabled and is_generative_ai fields included in Application data model. Required fields in inventory form.",
+      "testingRequired": "Verify AI fields are captured and reportable in Portfolio Intelligence view",
+      "deadline": "Annual — September 30",
+      "status": "Addressed in data model v1"
+    }
+
+  ],
+
+  "reviewSchedule": {
+    "frequency": "Each development sprint and before each major release",
+    "owner": "WaTech Product Manager",
+    "note": "New policies or standards identified during development should be added immediately as new COMP entries"
+  }
+}
