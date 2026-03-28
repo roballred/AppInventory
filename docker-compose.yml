@@ -9,9 +9,9 @@ version: "3.9"
 #   docker-compose down -v   Stop, remove containers and wipe database volume
 #
 # First time setup:
-#   1. Copy .env.example to .env.local and fill in your identity provider values
-#   2. Run: docker-compose up
-#   3. App runs at http://localhost:3000
+#   1. Run: docker-compose up
+#   2. App runs at http://localhost:3000
+#   3. Sign in with any dev test account — no identity provider needed locally
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -26,13 +26,14 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - AUTH_BYPASS=true
       - DATABASE_URL=postgresql://appinventory:appinventory@db:5432/appinventory
       - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      # Identity provider — replace with your state's values
-      - IDENTITY_PROVIDER_CLIENT_ID=${IDENTITY_PROVIDER_CLIENT_ID}
-      - IDENTITY_PROVIDER_CLIENT_SECRET=${IDENTITY_PROVIDER_CLIENT_SECRET}
-      - IDENTITY_PROVIDER_TENANT_ID=${IDENTITY_PROVIDER_TENANT_ID}
+      - NEXTAUTH_SECRET=dev-secret-change-in-production
+      # Identity provider — only needed in production (not required when AUTH_BYPASS=true)
+      - IDENTITY_PROVIDER_CLIENT_ID=${IDENTITY_PROVIDER_CLIENT_ID:-not-set}
+      - IDENTITY_PROVIDER_CLIENT_SECRET=${IDENTITY_PROVIDER_CLIENT_SECRET:-not-set}
+      - IDENTITY_PROVIDER_TENANT_ID=${IDENTITY_PROVIDER_TENANT_ID:-not-set}
     volumes:
       - .:/app
       - /app/node_modules

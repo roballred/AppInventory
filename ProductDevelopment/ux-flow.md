@@ -42,7 +42,9 @@ Applies to: Agency Admin, Submitter, Viewer
 ### Work Queue — Jordan's First Screen (CAP-09)
 The first screen Jordan sees after login. Instead of a generic dashboard, Jordan sees a focused, prioritized list of records that need attention — nothing more.
 
-Each item in the queue shows the application name, what needs updating, and an estimated effort level (quick update vs. needs research). Items are sorted by urgency — critically stale records first, then warning-level records, then records with missing required fields.
+Each item in the queue shows the application name, what needs updating, and an estimated effort level — **Quick update** or **Needs research**. Effort is based on the type of fields that need attention: fields Jordan can confirm from the application itself are quick; fields that require checking vendor documentation, procurement records, or support lifecycles are flagged as needing research. See Business Rules for the full field classification.
+
+Items are sorted by urgency — critically stale records first, then warning-level records, then records with missing required fields, then records with unverified risk flags.
 
 If Jordan has nothing to action, the queue shows a clear "all up to date" state — no hunting, no ambiguity.
 
@@ -69,7 +71,7 @@ The first screen after login for Agency Admins and Viewers. Shows a summary of t
 A full, paginated table of the agency's applications. Stale records are highlighted. Retired applications are shown with a visual indicator but are not hidden.
 
 **Filters:** Lifecycle status, staleness, AI-enabled, vendor
-**Available actions:** View a record, add an application, export (agency admin only)
+**Available actions:** View a record, add an application
 
 ---
 
@@ -126,7 +128,9 @@ Risk is surfaced in four categories:
 
 Each item links directly to the application record. Maria can see the risk, understand the context, and act — or assign it to Jordan — without leaving the screen.
 
-**Available actions:** View application detail, assign for review, export risk summary
+**Data quality warning:** Any risk item where the underlying record has never had its risk flags explicitly verified since creation is shown with an **Unverified** badge. This tells Maria that the flag value comes from initial record entry — not from a deliberate review. She can assign it to Jordan for verification without leaving the screen. Unverified items are not hidden; they appear in the same list with reduced confidence signaling.
+
+**Available actions:** View application detail, assign for review
 
 ---
 
@@ -171,14 +175,14 @@ A live operational view of data quality across all agencies. Derek can see at a 
 
 Derek can drill into any agency to see the specific records causing issues, then follow up directly.
 
-**Available actions:** Drill into agency, export data quality report, flag agency for follow-up
+**Available actions:** Drill into agency, flag agency for follow-up
 
 ---
 
 ### Agency Drill Down
 The same application list view that agency users see, but accessible for any agency. The agency name is always displayed in the header so the admin always knows whose data they are viewing.
 
-**Available actions:** View a record, edit a record, export agency data
+**Available actions:** View a record, edit a record
 
 ---
 
@@ -192,7 +196,7 @@ A cross-agency analysis view for identifying patterns, duplication, and consolid
 - Aging technology by agency
 - Candidates for central/shared services (same vendor or technology type used by 3 or more agencies)
 
-**Available actions:** Filter, sort, export
+**Available actions:** Filter, sort
 
 ---
 

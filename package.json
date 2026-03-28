@@ -15,34 +15,36 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
-    "next": "14.2.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "next-auth": "^4.24.7",
-    "pg": "^8.11.5",
+    "@uswds/uswds": "^3.8.0",
+    "clsx": "^2.1.1",
     "drizzle-orm": "^0.30.10",
     "drizzle-zod": "^0.5.1",
-    "zod": "^3.23.4",
-    "@uswds/uswds": "^3.8.0",
+    "next": "14.2.3",
+    "next-auth": "^4.24.7",
+    "pg": "^8.11.5",
+    "react": "^18",
+    "react-dom": "^18",
     "tailwindcss": "^3.4.3",
-    "clsx": "^2.1.1"
+    "zod": "^3.23.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^15.0.7",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
+    "@types/pg": "^8.11.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/pg": "^8.11.5",
-    "typescript": "^5",
+    "autoprefixer": "^10.4.27",
+    "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.21.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "@testing-library/react": "^15.0.7",
-    "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/user-event": "^14.5.2",
-    "@playwright/test": "^1.44.0",
-    "drizzle-kit": "^0.21.2",
     "tsx": "^4.10.5",
-    "dotenv": "^16.4.5"
+    "typescript": "^5"
   }
 }
