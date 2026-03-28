@@ -1,20 +1,20 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
-  "description": "Role definitions and permissions for the WaTech Application Inventory web app. Roles are assigned in Entra ID and enforced by the application. No data is ever deleted — retire is a lifecycle status change and all changes are kept in the audit log and can be reverted.",
+  "product": "State Application Inventory",
+  "description": "Role definitions and permissions for the State Application Inventory web app. Roles are assigned in the identity provider and enforced by the application. No data is ever deleted — retire is a lifecycle status change and all changes are kept in the audit log and can be reverted.",
 
   "principles": [
     "No hard deletes — all records are retained permanently",
     "Retire sets lifecycle_status to 'Retired from inventory' — it does not remove the record",
     "All changes including retirements and reversions are recorded in ApplicationAuditLog",
-    "watech_admin is the only role with cross-agency visibility",
+    "platform_admin is the only role with cross-agency visibility",
     "Agency roles are scoped to their own agency data only"
   ],
 
   "roles": {
-    "watech_admin": {
-      "description": "WaTech staff who manage the system, configure business rules, and approve annual certifications.",
+    "platform_admin": {
+      "description": "Platform administrators who manage the system on behalf of the state IT authority, configure business rules, and approve annual certifications.",
       "scope": "All agencies",
       "permissions": {
         "applications": {
@@ -143,19 +143,19 @@
   "permissionMatrix": {
     "note": "Quick reference — see roles above for full detail",
     "permissions": [
-      { "action": "View own agency applications",   "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
-      { "action": "Add application",                "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
-      { "action": "Edit application",               "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
-      { "action": "Retire application",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
-      { "action": "Revert application",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
-      { "action": "View audit history",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
-      { "action": "Submit annual certification",    "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
-      { "action": "Approve certification",          "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
-      { "action": "Manage agency users & roles",    "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
-      { "action": "View all agencies data",         "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
-      { "action": "Configure business rules",       "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
-      { "action": "Export & reporting",             "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
-      { "action": "Cross-agency insights",          "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false }
+      { "action": "View own agency applications",   "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
+      { "action": "Add application",                "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Edit application",               "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Retire application",             "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Revert application",             "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "View audit history",             "platform_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
+      { "action": "Submit annual certification",    "platform_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "Approve certification",          "platform_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Manage agency users & roles",    "platform_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "View all agencies data",         "platform_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Configure business rules",       "platform_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Export & reporting",             "platform_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "Cross-agency insights",          "platform_admin": true,  "agency_admin": false, "submitter": false, "viewer": false }
     ]
   }
 }

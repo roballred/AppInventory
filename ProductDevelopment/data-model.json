@@ -1,35 +1,35 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
+  "product": "State Application Inventory",
   "database": "PostgreSQL",
-  "description": "Core data model for the WaTech Application Inventory web app. Fields are derived from MGMT-01-01-S policy standards. Audit log captures full field-level change history.",
+  "description": "Core data model for the State Application Inventory web app. Fields are derived from the state IT portfolio policy standard (Washington State MGMT-01-01-S used as example — adopting states should map to their own equivalent policy). Audit log captures full field-level change history.",
 
   "entities": {
 
     "Agency": {
-      "description": "A Washington State agency that owns application inventory records.",
+      "description": "A state agency that owns application inventory records.",
       "fields": {
         "id": { "type": "UUID", "primaryKey": true },
         "name": { "type": "string", "required": true },
-        "agency_number": { "type": "string", "required": true, "note": "Official WaTech agency number from MGMT-01" },
-        "entra_group_id": { "type": "string", "required": true, "note": "Entra ID group ID linking agency to its users" },
+        "agency_number": { "type": "string", "required": true, "note": "Official agency number from the state IT authority's portfolio standard" },
+        "identity_group_id": { "type": "string", "required": true, "note": "Identity provider group ID linking agency to its users" },
         "created_at": { "type": "timestamp", "required": true },
         "updated_at": { "type": "timestamp", "required": true }
       }
     },
 
     "User": {
-      "description": "A person who accesses the system, authenticated via Entra ID.",
+      "description": "A person who accesses the system, authenticated via the state identity provider.",
       "fields": {
         "id": { "type": "UUID", "primaryKey": true },
-        "entra_id": { "type": "string", "required": true, "note": "Entra ID object ID — used for SSO mapping" },
+        "identity_id": { "type": "string", "required": true, "note": "Identity provider object ID — used for SSO mapping" },
         "agency_id": { "type": "UUID", "foreignKey": "Agency.id", "required": true },
         "role": {
           "type": "enum",
           "required": true,
-          "allowedValues": ["watech_admin", "agency_admin", "submitter", "viewer"],
-          "note": "watech_admin can see all agencies; all others are scoped to their agency only"
+          "allowedValues": ["platform_admin", "agency_admin", "submitter", "viewer"],
+          "note": "platform_admin can see all agencies; all others are scoped to their agency only"
         },
         "display_name": { "type": "string", "required": true },
         "email": { "type": "string", "required": true },
@@ -130,7 +130,7 @@
         "submitted_at": { "type": "timestamp", "required": false },
         "submitted_by": { "type": "UUID", "foreignKey": "User.id", "required": false },
         "approved_at": { "type": "timestamp", "required": false },
-        "approved_by": { "type": "UUID", "foreignKey": "User.id", "required": false, "note": "WaTech admin who approves the submission" },
+        "approved_by": { "type": "UUID", "foreignKey": "User.id", "required": false, "note": "Platform admin who approves the submission" },
         "created_at": { "type": "timestamp", "required": true },
         "updated_at": { "type": "timestamp", "required": true }
       }

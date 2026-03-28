@@ -1,11 +1,11 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
-  "description": "Configurable business rules for the WaTech Application Inventory web app. These rules are managed by WaTech admins through the app and drive notifications, validations, and data quality logic.",
+  "product": "State Application Inventory",
+  "description": "Configurable business rules for the State Application Inventory web app. These rules are managed by platform admins through the app and drive notifications, validations, and data quality logic.",
   "architecturalPrinciples": {
     "alerting": {
-      "v1_scope": "WaTech-controlled only",
+      "v1_scope": "Platform admin-controlled only",
       "future": "Designed for extensibility — agency-defined alerts to be added in a future release",
       "note": "Alert engine should be built as a generic rules processor, not hardcoded to specific metrics"
     }
@@ -134,7 +134,8 @@
       "certificationDeadline": {
         "month": 9,
         "day": 30,
-        "label": "September 30"
+        "label": "September 30",
+        "note": "September 30 is the Washington State annual certification deadline and is included as an example. Adopting states should replace this with their own applicable deadline."
       },
       "attestationRequired": true,
       "minimumRecordsRequired": 1,

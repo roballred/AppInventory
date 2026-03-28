@@ -1,12 +1,27 @@
-# WaTech Application Inventory
+# State Application Inventory
 
-A continuous inventory management web app for Washington State agencies, built for WaTech.
+A continuous inventory management web app for state agencies, built for state IT authorities.
+
+---
+
+## For State Adopters
+
+This is a template product designed for any state to adopt. It was originally designed for Washington State and is being released as a generic reference implementation.
+
+**What this means for you:**
+
+- All product design artifacts (data model, business rules, compliance register, roles, UX flow, tech stack) are included as working examples.
+- Washington State policies (MGMT-01-01-S, USER-01, RCW 43.105.341, etc.) are cited throughout as examples of the kinds of policies that typically drive this type of product. **Replace these with your own state's applicable policies, standards, and legal requirements.**
+- The September 30 annual certification deadline is a Washington State example. Replace it with your state's deadline.
+- Microsoft Entra ID is used as the identity provider because Washington State operates a Microsoft tenant. If your state uses a different identity provider, see `tech-stack.json` for guidance on replacing the authentication layer.
+- `wa.gov` URLs are included as reference examples — replace with your state's equivalent URLs.
+- The compliance register (`compliance-register.json`) lists Washington State compliance requirements as examples. Adopting states should replace these with their own applicable policies and legal mandates.
 
 ---
 
 ## Purpose
 
-Washington State agencies are required to submit an annual IT certification to WaTech that includes an Application Inventory. Today, agencies complete an Excel spreadsheet and submit it once a year. The data that comes back is inconsistent, often out of date, and hard to aggregate across 90+ agencies.
+State agencies are required to submit an annual IT certification to the state IT authority that includes an Application Inventory. Today, agencies complete an Excel spreadsheet and submit it once a year. The data that comes back is inconsistent, often out of date, and hard to aggregate across state agencies.
 
 This product replaces the spreadsheet with a web app where agencies maintain their application inventory continuously throughout the year. Annual certification becomes a review and attestation step — not a data entry event.
 
@@ -39,9 +54,9 @@ EasyEA starts with the customer and works inward — from customer needs → bus
 
 | Step | What We Did |
 |------|-------------|
-| 1. Set the Direction | Defined the problem: 90+ agencies submitting inconsistent spreadsheets annually |
-| 2. Understand the People | Identified target users: product managers with EA background at WaTech and agency IT staff |
-| 3. See How Work Really Happens | Analyzed the existing WaTech spreadsheet template (MGMT-01-01-S fields) and certification process |
+| 1. Set the Direction | Defined the problem: state agencies submitting inconsistent spreadsheets annually |
+| 2. Understand the People | Identified target users: product managers with EA background at the state IT authority and agency IT staff |
+| 3. See How Work Really Happens | Analyzed the existing spreadsheet template and certification process (Washington State MGMT-01-01-S used as example) |
 | 4. Find the Best Opportunities | Focused v1 on wrong values (inconsistent formats) as the highest-pain problem |
 | 5. Choose the Way Forward | Selected continuous inventory over annual-only; chose controlled fields over free text |
 | 6. Coordinate the Work | Defined capabilities, data model, roles, UX flow, and compliance requirements |
@@ -51,8 +66,8 @@ EasyEA starts with the customer and works inward — from customer needs → bus
 
 This product was reviewed by the EasyEA Architecture Review Board (ARB) in **Standard mode** using the following personas:
 
-- **Sarah Kim (Enterprise Architect)** — Confirmed architecture aligns with MGMT-01 portfolio mandate. Flagged Launchpad overlap — resolved by retiring the Launchpad.
-- **Omar Singh (Security Architect)** — Confirmed Entra ID is correct. Mandated agency-scoped data access from day one.
+- **Sarah Kim (Enterprise Architect)** — Confirmed architecture aligns with IT portfolio management mandate. Flagged Launchpad overlap — resolved by retiring the Launchpad.
+- **Omar Singh (Security Architect)** — Confirmed Entra ID is correct for Microsoft-tenant states. Mandated agency-scoped data access from day one.
 - **Lisa Rodriguez (Business Architect)** — Required measurable outcomes: data refresh rate and portfolio insights discovery.
 - **Jake Lawson (Veteran Architect)** — Raised enforcement question: why would agencies keep data current? Resolved through configurable alerting and certification blocking.
 
@@ -76,16 +91,16 @@ Every significant decision made during product design is documented here with ra
 | Next.js (React) | Full-stack capable, excellent Entra ID / MSAL integration, strong ecosystem |
 | Next.js API Routes for backend (v1) | Single codebase simplifies v1 deployment; can separate later if needed |
 | PostgreSQL on Azure | Open source, fully managed on Azure, well-suited to structured relational data |
-| Microsoft Entra ID (WA State tenant) | Agencies already authenticate here — no new identity system required |
+| Microsoft Entra ID (state tenant) | For Microsoft-tenant states: agencies already authenticate here — no new identity system required. See tech-stack.json for guidance on replacing with a different identity provider. |
 | Azure App Service hosting | Entra ID lives in Azure; same tenant simplifies security and compliance |
 | Azure Communication Services | Email notifications within same Azure tenant — no third-party dependency |
 | Tailwind CSS | Fast to build with, maintainable, no heavyweight design system required |
-| USWDS (U.S. Web Design System) | Built for government, meets WCAG 2.2 AA, referenced by WA State agencies |
+| USWDS (U.S. Web Design System) | Built for government, meets WCAG 2.2 AA, widely used by state agencies |
 
 ### Data
 | Decision | Rationale |
 |----------|-----------|
-| Fields derived from MGMT-01-01-S | Policy already defines the required data model — no need to reinvent |
+| Fields derived from state IT portfolio policy (Washington State MGMT-01-01-S used as example) | Policy already defines the required data model — no need to reinvent. Adopting states should map fields to their own policy standard. |
 | Full field-level audit history | Powers staleness detection, refresh rate metrics, and compliance audit trails |
 | No hard deletes — ever | Government data must be retained; retire is a lifecycle status change, not a deletion |
 | Retire and revert available to submitters | Submitters maintain records day-to-day; restricting retire to admins creates bottlenecks |
@@ -95,21 +110,21 @@ Every significant decision made during product design is documented here with ra
 | Decision | Rationale |
 |----------|-----------|
 | Agency-scoped data access | Agencies must not see each other's inventory — enforced at application level, not just UI |
-| 4 roles: watech_admin, agency_admin, submitter, viewer | Matches real operational needs without over-engineering permissions |
-| watech_admin is the only cross-agency role | Portfolio intelligence requires cross-agency visibility; all other roles are agency-scoped |
+| 4 roles: platform_admin, agency_admin, submitter, viewer | Matches real operational needs without over-engineering permissions |
+| platform_admin is the only cross-agency role | Portfolio intelligence requires cross-agency visibility; all other roles are agency-scoped |
 
 ### Business Rules
 | Decision | Rationale |
 |----------|-----------|
-| Business rules configurable by WaTech admin (no deployment) | Policy thresholds change regularly — deploying code for a number change is wasteful |
+| Business rules configurable by platform admin (no deployment) | Policy thresholds change regularly — deploying code for a number change is wasteful |
 | Alert engine built as generic rules processor | Agency-defined alerts are a future feature; building generic from day one avoids a rebuild |
 | Stale records block certification submission | Enforcement mechanism that drives continuous maintenance without external policy pressure |
 
 ### Compliance
 | Decision | Rationale |
 |----------|-----------|
-| WCAG 2.2 AA (not 2.1) | WA State mandate transitions to 2.2 AA by July 1, 2026 — building to 2.1 would require immediate rework |
-| Privacy assessment required before launch | App collects user PII via Entra ID — USER-01 requires assessment even for internal tools |
+| WCAG 2.2 AA (not 2.1) | Washington State mandate transitions to 2.2 AA by July 1, 2026 (used as example). Adopting states should verify their own accessibility mandate version and deadline. |
+| Privacy assessment required before launch | App collects user PII via identity provider — privacy policy typically requires assessment even for internal tools |
 | Infrastructure inventory deferred to future release | Out of scope for v1; COMP-03 in compliance register tracks this for future work |
 
 ---
@@ -132,11 +147,11 @@ Every significant decision made during product design is documented here with ra
 
 | Item | Notes |
 |------|-------|
-| Azure infrastructure provisioning | Azure tenant and subscription required from WaTech infrastructure team. See `tech-stack.json` for decisions and assumptions. |
-| Entra ID group and role configuration | Agency groups need to be configured in WA State Entra ID tenant |
+| Azure infrastructure provisioning | Azure tenant and subscription required from state IT authority infrastructure team. See `tech-stack.json` for decisions and assumptions. |
+| Identity provider group and role configuration | Agency groups need to be configured in the state identity provider tenant |
 | Application build | No code has been written yet — all artifacts above are design/planning |
 | Privacy assessment | COMP-06 — required before launch |
-| Security review | COMP-07 — Entra ID configuration review required before launch |
+| Security review | COMP-07 — identity provider configuration review required before launch |
 | Accessibility audit | COMP-01 — automated and manual testing required before launch |
 | Infrastructure inventory (v2) | COMP-03 — deferred from v1 |
 | Agency-defined alerts (v2) | Alert engine is built generically to support this; feature deferred from v1 |
@@ -145,17 +160,17 @@ Every significant decision made during product design is documented here with ra
 
 ## Compliance Summary
 
-All compliance requirements are tracked in `ProductDevelopment/compliance-register.json`. Key mandates:
+All compliance requirements are tracked in `ProductDevelopment/compliance-register.json`. The requirements listed are based on Washington State policies and are included as examples. Adopting states should replace these with their own applicable mandates.
 
 | Requirement | Deadline | Status |
 |-------------|----------|--------|
-| WCAG 2.2 AA (USER-01) | July 1, 2026 | In design |
-| MGMT-01-01-S Application Inventory | Sept 30 annually | Addressed in data model |
-| RCW 43.105.341 Legislative Reporting | Ongoing | Addressed in CAP-07 |
-| Annual Certification Deadline | Sept 30 annually | Addressed in business rules |
+| WCAG 2.2 AA (example: USER-01) | July 1, 2026 (WA State example) | In design |
+| IT Portfolio — Application Inventory (example: MGMT-01-01-S) | Sept 30 annually (WA State example) | Addressed in data model |
+| Legislative Reporting (example: RCW 43.105.341) | Ongoing | Addressed in CAP-07 |
+| Annual Certification Deadline | Sept 30 annually (WA State example — replace with your state's deadline) | Addressed in business rules |
 | Privacy Assessment | Before launch | Needs assessment |
-| Security Review (SEC-06) | Before launch | Architecture decided |
-| AI Application Identification | Sept 30 annually | Addressed in data model |
+| Security Review | Before launch | Architecture decided |
+| AI Application Identification | Sept 30 annually (WA State example) | Addressed in data model |
 
 ---
 
@@ -176,19 +191,21 @@ During this product design, 5 improvements to the EasyEA framework were identifi
 ## For Developers Picking Up This Work
 
 1. **Read this README first** — it explains every decision and why it was made
-2. **Review `compliance-register.json`** — compliance requirements constrain implementation choices
+2. **Review `compliance-register.json`** — compliance requirements constrain implementation choices. Note: requirements listed are Washington State examples — replace with your state's mandates.
 3. **Review `data-model.json`** — understand the entities before writing any code
 4. **Review `roles-permissions.json`** — access control must be enforced at the API level, not just the UI
 5. **Review `business-rules.json`** — notification and alerting logic is driven by configurable rules, not hardcoded values
-6. **Contact WaTech infrastructure team** to provision Azure tenant, subscription, and Entra ID group configuration before beginning deployment work
+6. **Contact the state IT authority infrastructure team** to provision Azure tenant, subscription, and identity provider group configuration before beginning deployment work
 
 ---
 
 ## Policies and Standards Referenced
 
-- [MGMT-01 Technology Portfolio Foundation Policy](https://watech.wa.gov/policies/technology-portfolio-foundation)
-- [USER-01 Digital Accessibility Policy](https://watech.wa.gov/policies/digital-accessibility-policy)
-- [RCW 43.105.341 — IT Portfolios](https://app.leg.wa.gov/rcw/default.aspx?cite=43.105.341)
-- [WaTech Annual Certification](https://watech.wa.gov/2024-annual-certification)
+The following are Washington State policies used as examples in this reference implementation. Adopting states should identify and substitute their own equivalent policies.
+
+- [MGMT-01 Technology Portfolio Foundation Policy](https://watech.wa.gov/policies/technology-portfolio-foundation) (example — replace with your state equivalent)
+- [USER-01 Digital Accessibility Policy](https://watech.wa.gov/policies/digital-accessibility-policy) (example — replace with your state equivalent)
+- [RCW 43.105.341 — IT Portfolios](https://app.leg.wa.gov/rcw/default.aspx?cite=43.105.341) (example — replace with your state equivalent)
+- [State IT Authority Annual Certification](https://watech.wa.gov/2024-annual-certification) (example — replace with your state equivalent)
 - [U.S. Web Design System (USWDS)](https://designsystem.digital.gov/)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)

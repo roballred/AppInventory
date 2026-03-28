@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
+  "product": "State Application Inventory",
   "status": "Decided — not yet provisioned",
   "note": "Infrastructure provisioning is out of scope for v1 product design. This document captures decisions so infrastructure teams can provision and deploy independently.",
 
@@ -22,16 +22,17 @@
     "authentication": {
       "technology": "Microsoft Entra ID",
       "library": "MSAL (Microsoft Authentication Library)",
-      "tenant": "Washington State government tenant",
-      "rationale": "Already decided. Agencies authenticate through the existing WA State Entra ID tenant. No new identity system required."
+      "tenant": "State government Microsoft tenant",
+      "rationale": "Recommended for states operating a Microsoft tenant — agencies already authenticate here, so no new identity system is required. The authentication layer can be replaced with any SAML 2.0 or OIDC-compatible identity provider for states that do not use Microsoft Entra ID.",
+      "alternativeNote": "Non-Microsoft-tenant states may substitute any SAML 2.0 or OIDC-compatible identity provider (e.g., Okta, PingFederate, Auth0). Replace MSAL with the appropriate library for your chosen provider."
     },
     "hosting": {
       "technology": "Azure App Service",
-      "rationale": "Entra ID lives in Azure. Keeping hosting in the same tenant simplifies security, compliance, and networking."
+      "rationale": "Entra ID lives in Azure. Keeping hosting in the same tenant simplifies security, compliance, and networking. States using a different identity provider may host on any compatible platform."
     },
     "notifications": {
       "technology": "Azure Communication Services",
-      "rationale": "Email notifications within the same Azure tenant. No third-party dependency."
+      "rationale": "Email notifications within the same Azure tenant. No third-party dependency. Can be replaced with any transactional email service if not using Azure."
     },
     "styling": {
       "technology": "Tailwind CSS",
@@ -40,9 +41,9 @@
   },
 
   "infrastructureAssumptions": {
-    "azureTenant": "WaTech Azure tenant — to be confirmed by infrastructure team",
+    "azureTenant": "State IT authority Azure tenant — to be confirmed by infrastructure team",
     "azureSubscription": "To be provisioned by infrastructure team",
-    "entraIdGroups": "Agency groups and role assignments to be configured in WA State Entra ID tenant",
+    "identityProviderGroups": "Agency groups and role assignments to be configured in the state identity provider tenant",
     "provisioningStatus": "Not started — see this file for stack decisions to guide provisioning"
   }
 }

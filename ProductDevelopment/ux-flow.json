@@ -1,17 +1,17 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
+  "product": "State Application Inventory",
   "designSystem": "U.S. Web Design System (USWDS)",
   "accessibilityStandard": "WCAG 2.2 AA",
-  "accessibilityPolicy": "USER-01 — WaTech Digital Accessibility Policy",
-  "description": "UI/UX flow for the WaTech Application Inventory web app. Organized by role. All screens must meet WCAG 2.2 AA and follow USWDS component standards.",
+  "accessibilityPolicy": "State digital accessibility policy (adopting states should reference their own equivalent policy)",
+  "description": "UI/UX flow for the State Application Inventory web app. Organized by role. All screens must meet WCAG 2.2 AA and follow USWDS component standards.",
 
   "globalPrinciples": [
     "All screens meet WCAG 2.2 AA — keyboard navigable, screen reader compatible, sufficient color contrast",
     "USWDS components used throughout — no custom components unless no USWDS equivalent exists",
     "Agency users only ever see their own agency data",
-    "watech_admin sees all agency data with clear agency context always visible",
+    "platform_admin sees all agency data with clear agency context always visible",
     "Destructive-looking actions (retire, revert) require confirmation before executing",
     "All forms show inline validation with plain-language error messages",
     "Every controlled field uses a USWDS select or combo box — no free text where a controlled value is required"
@@ -20,17 +20,17 @@
   "flows": {
 
     "authentication": {
-      "description": "Login flow via Entra ID SSO",
+      "description": "Login flow via identity provider SSO",
       "steps": [
         {
           "screen": "Landing Page",
-          "description": "Simple landing page with WaTech branding (USWDS). Single 'Sign In' button.",
-          "actions": ["Sign In with Microsoft"]
+          "description": "Simple landing page with state branding (USWDS). Single 'Sign In' button.",
+          "actions": ["Sign In"]
         },
         {
-          "screen": "Entra ID SSO",
-          "description": "Redirect to WA State Entra ID login. Handled entirely by Microsoft — no custom UI.",
-          "actions": ["Authenticate via WA State Entra ID"]
+          "screen": "Identity Provider SSO",
+          "description": "Redirect to state identity provider login. Handled entirely by the identity provider — no custom UI.",
+          "actions": ["Authenticate via state identity provider"]
         },
         {
           "screen": "Role Assignment Check",
@@ -124,8 +124,8 @@
       ]
     },
 
-    "watech_admin": {
-      "applicableTo": ["watech_admin"],
+    "platform_admin": {
+      "applicableTo": ["platform_admin"],
       "screens": [
         {
           "screen": "Admin Dashboard",
@@ -135,7 +135,7 @@
         },
         {
           "screen": "Agency Drill Down",
-          "description": "Same as agency Application List view but accessed by WaTech admin for any agency. Agency name always visible in header for context.",
+          "description": "Same as agency Application List view but accessed by platform admin for any agency. Agency name always visible in header for context.",
           "actions": ["View Application", "Edit Application", "Export Agency Data"]
         },
         {
@@ -167,7 +167,7 @@
         },
         {
           "screen": "User Management",
-          "description": "Manage users and role assignments across all agencies. WaTech admins can assign roles; agency admins can manage their own agency users only.",
+          "description": "Manage users and role assignments across all agencies. Platform admins can assign roles; agency admins can manage their own agency users only.",
           "components": ["USWDS Table", "USWDS Select for role assignment"],
           "actions": ["Assign Role", "Remove Role", "Filter by Agency"]
         },

@@ -1,9 +1,9 @@
 {
   "version": "v1",
   "created": "2026-03-27",
-  "product": "WaTech Application Inventory",
+  "product": "State Application Inventory",
   "framework": "EasyEA",
-  "description": "Business capabilities that drive the WaTech Application Inventory web app.",
+  "description": "Business capabilities that drive the State Application Inventory web app.",
   "capabilities": [
     {
       "id": "CAP-01",
@@ -14,7 +14,7 @@
     {
       "id": "CAP-02",
       "name": "Identity & Access Control",
-      "description": "Entra ID authentication with agency-scoped roles — admins, submitters, and viewers — ensuring agencies only see their own data.",
+      "description": "Identity provider authentication with agency-scoped roles — admins, submitters, and viewers — ensuring agencies only see their own data.",
       "status": "v1"
     },
     {
@@ -26,7 +26,7 @@
     {
       "id": "CAP-04",
       "name": "Configurable Alerting & Notification",
-      "description": "WaTech admins define metrics, thresholds, and policy rules that trigger automated notifications to the right agency roles. Built as a generic rules processor to support agency-defined alerts in a future release.",
+      "description": "Platform admins define metrics, thresholds, and policy rules that trigger automated notifications to the right agency roles. Built as a generic rules processor to support agency-defined alerts in a future release.",
       "status": "v1"
     },
     {
@@ -37,14 +37,14 @@
     },
     {
       "id": "CAP-06",
-      "name": "WaTech Admin & Configuration",
-      "description": "WaTech admins manage business rules, view all agency data, monitor compliance, and configure notification thresholds.",
+      "name": "Platform Admin & Configuration",
+      "description": "Platform admins manage business rules, view all agency data, monitor compliance, and configure notification thresholds.",
       "status": "v1"
     },
     {
       "id": "CAP-07",
       "name": "Portfolio Intelligence",
-      "description": "WaTech analyzes application inventory data across all agencies to identify technology duplication, consolidation candidates, and shared service opportunities — supporting internal planning and statewide portfolio decisions.",
+      "description": "The state IT authority analyzes application inventory data across all agencies to identify technology duplication, consolidation candidates, and shared service opportunities — supporting internal planning and statewide portfolio decisions.",
       "status": "v1"
     }
   ]
