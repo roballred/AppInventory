@@ -37,7 +37,7 @@ AppInventory/
 ├── .env.example                       ← Environment variable template — copy to .env.local
 ├── .gitignore                         ← Excludes secrets and build artifacts
 └── ProductDevelopment/                ← All product design artifacts
-    ├── capabilities.json              ← Business capabilities (EasyEA)
+    ├── capabilities.json              ← Business capabilities
     ├── business-rules.json            ← Configurable business rules
     ├── tech-stack.json                ← Technology decisions and rationale
     ├── data-model.json                ← Data entities and fields
@@ -123,13 +123,13 @@ Every significant decision made during product design is documented here with ra
 
 | Artifact | File | Status |
 |----------|------|--------|
-| Business Capabilities | `ProductDevelopment/capabilities.json` | ✅ Complete |
-| Business Rules | `ProductDevelopment/business-rules.json` | ✅ Complete |
-| Tech Stack | `ProductDevelopment/tech-stack.json` | ✅ Complete |
-| Data Model | `ProductDevelopment/data-model.json` | ✅ Complete |
-| Roles & Permissions | `ProductDevelopment/roles-permissions.json` | ✅ Complete |
-| UI/UX Flow | `ProductDevelopment/ux-flow.json` | ✅ Complete |
-| Compliance Register | `ProductDevelopment/compliance-register.json` | ✅ Complete |
+| Business Capabilities | `ProductDevelopment/capabilities.json` | ✅ Design Complete |
+| Business Rules | `ProductDevelopment/business-rules.json` | ✅ Design Complete |
+| Tech Stack | `ProductDevelopment/tech-stack.json` | ✅ Design Complete |
+| Data Model | `ProductDevelopment/data-model.json` | ✅ Design Complete |
+| Roles & Permissions | `ProductDevelopment/roles-permissions.json` | ✅ Design Complete |
+| UI/UX Flow | `ProductDevelopment/ux-flow.json` | ✅ Design Complete |
+| Compliance Register | `ProductDevelopment/compliance-register.json` | ✅ Design Complete |
 
 ---
 
