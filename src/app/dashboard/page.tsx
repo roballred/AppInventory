@@ -28,6 +28,12 @@ export default async function DashboardPage() {
   if (!session) redirect('/login')
 
   const user = session.user as any
+
+  // Submitters go directly to the work queue — that is their primary screen
+  if (user.role === 'submitter') {
+    redirect('/dashboard/work-queue')
+  }
+
   const agencyFilter = getAgencyFilter(session)
   const canEdit = canEditApplication(session)
   const isPlatformAdmin = user.role === 'platform_admin'

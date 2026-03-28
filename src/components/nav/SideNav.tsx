@@ -21,9 +21,22 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
 
   const isPlatformAdmin = role === 'platform_admin'
   const isAgencyAdmin = role === 'agency_admin'
+  const isSubmitter = role === 'submitter'
+  const hasWorkQueue = isSubmitter || isAgencyAdmin
 
   const navItems: NavItem[] = [
-    { href: '/dashboard', label: 'Dashboard' },
+    // Work Queue — first nav item for submitters and agency_admins
+    {
+      href: '/dashboard/work-queue',
+      label: 'Work Queue',
+      hidden: !hasWorkQueue,
+    },
+    // Dashboard — shown to agency_admin, viewer, platform_admin; submitters bypass it
+    {
+      href: '/dashboard',
+      label: 'Dashboard',
+      hidden: isSubmitter,
+    },
     { href: '/dashboard/applications', label: 'Applications' },
     {
       href: '/dashboard/certification',

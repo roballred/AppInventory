@@ -135,12 +135,24 @@ export const businessRules = pgTable('business_rules', {
   updatedById: varchar('updated_by_id', { length: 255 }),
 })
 
+// ─── workQueueDismissals ──────────────────────────────────────────────────────
+
+export const workQueueDismissals = pgTable('work_queue_dismissals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
+  applicationId: uuid('application_id').notNull().references(() => applications.id),
+  reason: varchar('reason', { length: 50 }).notNull(), // 'stale' | 'missing_fields' | 'unverified_risk'
+  dismissedAt: timestamp('dismissed_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+})
+
 // ─── Exported types ───────────────────────────────────────────────────────────
 
 export type Agency = typeof agencies.$inferSelect
 export type Application = typeof applications.$inferSelect
 export type ApplicationAuditLog = typeof applicationAuditLog.$inferSelect
 export type BusinessRule = typeof businessRules.$inferSelect
+export type WorkQueueDismissal = typeof workQueueDismissals.$inferSelect
 export type NewApplication = typeof applications.$inferInsert
 export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
 export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]
