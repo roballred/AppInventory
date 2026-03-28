@@ -1,0 +1,51 @@
+{
+  "version": "v1",
+  "created": "2026-03-27",
+  "product": "WaTech Application Inventory",
+  "framework": "EasyEA",
+  "description": "Business capabilities that drive the WaTech Application Inventory web app.",
+  "capabilities": [
+    {
+      "id": "CAP-01",
+      "name": "Agency Inventory Management",
+      "description": "Agencies can add, update, and retire application records continuously throughout the year using controlled fields and values.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-02",
+      "name": "Identity & Access Control",
+      "description": "Entra ID authentication with agency-scoped roles — admins, submitters, and viewers — ensuring agencies only see their own data.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-03",
+      "name": "Data Quality Enforcement",
+      "description": "Required fields, controlled vocabularies, and validation rules prevent bad data from entering the system at the point of entry.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-04",
+      "name": "Configurable Alerting & Notification",
+      "description": "WaTech admins define metrics, thresholds, and policy rules that trigger automated notifications to the right agency roles. Built as a generic rules processor to support agency-defined alerts in a future release.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-05",
+      "name": "Annual Certification",
+      "description": "Agencies review, attest, and submit their inventory for annual certification. Stale records block submission until resolved.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-06",
+      "name": "WaTech Admin & Configuration",
+      "description": "WaTech admins manage business rules, view all agency data, monitor compliance, and configure notification thresholds.",
+      "status": "v1"
+    },
+    {
+      "id": "CAP-07",
+      "name": "Portfolio Intelligence",
+      "description": "WaTech analyzes application inventory data across all agencies to identify technology duplication, consolidation candidates, and shared service opportunities — supporting internal planning and statewide portfolio decisions.",
+      "status": "v1"
+    }
+  ]
+}
