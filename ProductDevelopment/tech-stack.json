@@ -40,6 +40,33 @@
     }
   },
 
+  "containerization": {
+    "strategy": "Optional — not a mandate. Code-first deployment always available.",
+    "developerExperience": {
+      "tool": "docker-compose",
+      "command": "docker-compose up",
+      "rationale": "Single command spins up app and database locally. Recommended developer onboarding path.",
+      "includes": ["Next.js app", "PostgreSQL database"]
+    },
+    "deploymentPaths": [
+      {
+        "path": "Run from code",
+        "description": "Deploy directly to any platform without containers. Any state can use this path regardless of container expertise.",
+        "audience": "All states"
+      },
+      {
+        "path": "Docker container",
+        "description": "Build and run as a Docker container. Portable across any cloud or on-premise environment.",
+        "audience": "States that want portability and environment consistency"
+      },
+      {
+        "path": "Kubernetes / AKS",
+        "description": "Deploy to a Kubernetes cluster for states with existing container infrastructure.",
+        "audience": "Larger states with container infrastructure already in place"
+      }
+    ]
+  },
+
   "infrastructureAssumptions": {
     "azureTenant": "State IT authority Azure tenant — to be confirmed by infrastructure team",
     "azureSubscription": "To be provisioned by infrastructure team",

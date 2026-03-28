@@ -1,0 +1,61 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# State Application Inventory — Local Development
+#
+# Usage:
+#   docker-compose up        Start app and database
+#   docker-compose down      Stop and remove containers
+#   docker-compose down -v   Stop, remove containers and wipe database volume
+#
+# First time setup:
+#   1. Copy .env.example to .env.local and fill in your identity provider values
+#   2. Run: docker-compose up
+#   3. App runs at http://localhost:3000
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder         # Use builder stage for hot reload in development
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://appinventory:appinventory@db:5432/appinventory
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # Identity provider — replace with your state's values
+      - IDENTITY_PROVIDER_CLIENT_ID=${IDENTITY_PROVIDER_CLIENT_ID}
+      - IDENTITY_PROVIDER_CLIENT_SECRET=${IDENTITY_PROVIDER_CLIENT_SECRET}
+      - IDENTITY_PROVIDER_TENANT_ID=${IDENTITY_PROVIDER_TENANT_ID}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: appinventory
+      POSTGRES_PASSWORD: appinventory
+      POSTGRES_DB: appinventory
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appinventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
