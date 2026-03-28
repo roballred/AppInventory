@@ -1,0 +1,161 @@
+{
+  "version": "v1",
+  "created": "2026-03-27",
+  "product": "WaTech Application Inventory",
+  "description": "Role definitions and permissions for the WaTech Application Inventory web app. Roles are assigned in Entra ID and enforced by the application. No data is ever deleted — retire is a lifecycle status change and all changes are kept in the audit log and can be reverted.",
+
+  "principles": [
+    "No hard deletes — all records are retained permanently",
+    "Retire sets lifecycle_status to 'Retired from inventory' — it does not remove the record",
+    "All changes including retirements and reversions are recorded in ApplicationAuditLog",
+    "watech_admin is the only role with cross-agency visibility",
+    "Agency roles are scoped to their own agency data only"
+  ],
+
+  "roles": {
+    "watech_admin": {
+      "description": "WaTech staff who manage the system, configure business rules, and approve annual certifications.",
+      "scope": "All agencies",
+      "permissions": {
+        "applications": {
+          "view": true,
+          "add": true,
+          "edit": true,
+          "retire": true,
+          "revert": true
+        },
+        "auditLog": {
+          "view": true
+        },
+        "certification": {
+          "submit": true,
+          "approve": true
+        },
+        "users": {
+          "manage": true
+        },
+        "businessRules": {
+          "configure": true
+        },
+        "reporting": {
+          "export": true,
+          "crossAgencyInsights": true
+        }
+      }
+    },
+
+    "agency_admin": {
+      "description": "Agency IT lead responsible for their agency's inventory and certification submission.",
+      "scope": "Own agency only",
+      "permissions": {
+        "applications": {
+          "view": true,
+          "add": true,
+          "edit": true,
+          "retire": true,
+          "revert": true
+        },
+        "auditLog": {
+          "view": true
+        },
+        "certification": {
+          "submit": true,
+          "approve": false
+        },
+        "users": {
+          "manage": true,
+          "note": "Can manage users within their own agency only"
+        },
+        "businessRules": {
+          "configure": false
+        },
+        "reporting": {
+          "export": true,
+          "crossAgencyInsights": false
+        }
+      }
+    },
+
+    "submitter": {
+      "description": "Agency staff who maintain application records day to day.",
+      "scope": "Own agency only",
+      "permissions": {
+        "applications": {
+          "view": true,
+          "add": true,
+          "edit": true,
+          "retire": true,
+          "revert": true,
+          "note": "Retire and revert are lifecycle status changes only — no data is deleted"
+        },
+        "auditLog": {
+          "view": true
+        },
+        "certification": {
+          "submit": false,
+          "approve": false
+        },
+        "users": {
+          "manage": false
+        },
+        "businessRules": {
+          "configure": false
+        },
+        "reporting": {
+          "export": false,
+          "crossAgencyInsights": false
+        }
+      }
+    },
+
+    "viewer": {
+      "description": "Read-only access to agency inventory. Suitable for auditors or leadership who need visibility without edit rights.",
+      "scope": "Own agency only",
+      "permissions": {
+        "applications": {
+          "view": true,
+          "add": false,
+          "edit": false,
+          "retire": false,
+          "revert": false
+        },
+        "auditLog": {
+          "view": true
+        },
+        "certification": {
+          "submit": false,
+          "approve": false
+        },
+        "users": {
+          "manage": false
+        },
+        "businessRules": {
+          "configure": false
+        },
+        "reporting": {
+          "export": false,
+          "crossAgencyInsights": false
+        }
+      }
+    }
+  },
+
+  "permissionMatrix": {
+    "note": "Quick reference — see roles above for full detail",
+    "permissions": [
+      { "action": "View own agency applications",   "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
+      { "action": "Add application",                "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Edit application",               "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Retire application",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "Revert application",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": false },
+      { "action": "View audit history",             "watech_admin": true,  "agency_admin": true,  "submitter": true,  "viewer": true  },
+      { "action": "Submit annual certification",    "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "Approve certification",          "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Manage agency users & roles",    "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "View all agencies data",         "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Configure business rules",       "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false },
+      { "action": "Export & reporting",             "watech_admin": true,  "agency_admin": true,  "submitter": false, "viewer": false },
+      { "action": "Cross-agency insights",          "watech_admin": true,  "agency_admin": false, "submitter": false, "viewer": false }
+    ]
+  }
+}
