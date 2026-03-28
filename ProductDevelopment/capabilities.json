@@ -2,7 +2,6 @@
   "version": "v1",
   "created": "2026-03-27",
   "product": "State Application Inventory",
-  "framework": "EasyEA",
   "description": "Business capabilities that drive the State Application Inventory web app.",
   "capabilities": [
     {

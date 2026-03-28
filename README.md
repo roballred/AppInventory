@@ -50,30 +50,7 @@ AppInventory/
 
 ## How This Product Was Designed
 
-This product was designed using the **EasyEA framework** — a lightweight, business-first enterprise architecture framework. See [github.com/roballred/EasyEA](https://github.com/roballred/EasyEA) for full framework documentation.
-
-EasyEA starts with the customer and works inward — from customer needs → business capabilities → technology decisions. Every decision in this repo follows that sequence.
-
-### EasyEA Workflow Applied
-
-| Step | What We Did |
-|------|-------------|
-| 1. Set the Direction | Defined the problem: state agencies submitting inconsistent spreadsheets annually |
-| 2. Understand the People | Identified target users: product managers with EA background at the state IT authority and agency IT staff |
-| 3. See How Work Really Happens | Analyzed the existing spreadsheet template and certification process (Washington State MGMT-01-01-S used as example) |
-| 4. Find the Best Opportunities | Focused v1 on wrong values (inconsistent formats) as the highest-pain problem |
-| 5. Choose the Way Forward | Selected continuous inventory over annual-only; chose controlled fields over free text |
-| 6. Coordinate the Work | Defined capabilities, data model, roles, UX flow, and compliance requirements |
-| 7. Track and Adjust | Established success metrics: data refresh rate and ability to find portfolio insights |
-
-### ARB Review
-
-This product was reviewed by the EasyEA Architecture Review Board (ARB) in **Standard mode** using the following personas:
-
-- **Sarah Kim (Enterprise Architect)** — Confirmed architecture aligns with IT portfolio management mandate. Flagged Launchpad overlap — resolved by retiring the Launchpad.
-- **Omar Singh (Security Architect)** — Confirmed Entra ID is correct for Microsoft-tenant states. Mandated agency-scoped data access from day one.
-- **Lisa Rodriguez (Business Architect)** — Required measurable outcomes: data refresh rate and portfolio insights discovery.
-- **Jake Lawson (Veteran Architect)** — Raised enforcement question: why would agencies keep data current? Resolved through configurable alerting and certification blocking.
+This product was designed using a business-first approach — starting with customer needs and working inward to capabilities, data, and technology decisions. Every decision in this repo follows that sequence.
 
 ---
 
@@ -187,19 +164,6 @@ All compliance requirements are tracked in `ProductDevelopment/compliance-regist
 
 ---
 
-## EasyEA Framework Improvements
-
-During this product design, 5 improvements to the EasyEA framework were identified and logged as issues in the EasyEA repo:
-
-| Issue | Improvement |
-|-------|-------------|
-| [#16](https://github.com/roballred/EasyEA/issues/16) | Add "Inherit Existing Data Standards" to capability design step |
-| [#17](https://github.com/roballred/EasyEA/issues/17) | Add Business Rules Canvas as standard artifact |
-| [#18](https://github.com/roballred/EasyEA/issues/18) | Add Central Services Candidate Register for government EA |
-| [#19](https://github.com/roballred/EasyEA/issues/19) | Define ARB persona roles for early-stage ideation |
-| [#20](https://github.com/roballred/EasyEA/issues/20) | Add Compliance Register as standard early-stage artifact |
-
----
 
 ## For Developers Picking Up This Work
 
