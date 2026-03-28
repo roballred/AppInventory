@@ -1,0 +1,183 @@
+{
+  "version": "v1",
+  "created": "2026-03-27",
+  "product": "WaTech Application Inventory",
+  "designSystem": "U.S. Web Design System (USWDS)",
+  "accessibilityStandard": "WCAG 2.2 AA",
+  "accessibilityPolicy": "USER-01 — WaTech Digital Accessibility Policy",
+  "description": "UI/UX flow for the WaTech Application Inventory web app. Organized by role. All screens must meet WCAG 2.2 AA and follow USWDS component standards.",
+
+  "globalPrinciples": [
+    "All screens meet WCAG 2.2 AA — keyboard navigable, screen reader compatible, sufficient color contrast",
+    "USWDS components used throughout — no custom components unless no USWDS equivalent exists",
+    "Agency users only ever see their own agency data",
+    "watech_admin sees all agency data with clear agency context always visible",
+    "Destructive-looking actions (retire, revert) require confirmation before executing",
+    "All forms show inline validation with plain-language error messages",
+    "Every controlled field uses a USWDS select or combo box — no free text where a controlled value is required"
+  ],
+
+  "flows": {
+
+    "authentication": {
+      "description": "Login flow via Entra ID SSO",
+      "steps": [
+        {
+          "screen": "Landing Page",
+          "description": "Simple landing page with WaTech branding (USWDS). Single 'Sign In' button.",
+          "actions": ["Sign In with Microsoft"]
+        },
+        {
+          "screen": "Entra ID SSO",
+          "description": "Redirect to WA State Entra ID login. Handled entirely by Microsoft — no custom UI.",
+          "actions": ["Authenticate via WA State Entra ID"]
+        },
+        {
+          "screen": "Role Assignment Check",
+          "description": "After login, system checks user role and agency assignment. If no role found, show access pending screen.",
+          "actions": ["Redirect to dashboard based on role"]
+        },
+        {
+          "screen": "Access Pending",
+          "description": "Shown when a user has authenticated but has no role assigned yet. Displays contact info for their agency admin.",
+          "actions": ["Sign Out"]
+        }
+      ]
+    },
+
+    "agency_user": {
+      "applicableTo": ["agency_admin", "submitter", "viewer"],
+      "screens": [
+        {
+          "screen": "Dashboard",
+          "description": "Agency inventory overview. Shows summary cards: total applications, stale records, lifecycle breakdown, and certification status for current year.",
+          "components": ["USWDS Summary Boxes", "USWDS Table preview", "USWDS Alert for stale or certification warnings"],
+          "actions": ["View Applications", "Add Application", "View Certification Status", "View Notifications"]
+        },
+        {
+          "screen": "Application List",
+          "description": "Paginated, sortable, filterable table of all agency applications. Stale records highlighted. Retired records shown with visual indicator but not hidden.",
+          "components": ["USWDS Table", "USWDS Search", "USWDS Filter", "USWDS Pagination"],
+          "filters": ["Lifecycle Status", "Staleness", "AI Enabled", "Vendor"],
+          "actions": ["View Application", "Add Application", "Export (agency_admin only)"]
+        },
+        {
+          "screen": "Application Detail",
+          "description": "Full view of a single application record. Shows all fields, current values, and last reviewed date. Audit history tab shows full field-level change log.",
+          "components": ["USWDS Card", "USWDS Tabs (Details | Audit History)", "USWDS Table for audit log"],
+          "actions": ["Edit", "Retire", "Revert (if retired)", "View Audit History"]
+        },
+        {
+          "screen": "Add / Edit Application",
+          "description": "Form to create or update an application record. Controlled fields use USWDS Select or Combo Box. Required fields clearly marked. Inline validation on submit.",
+          "components": ["USWDS Form", "USWDS Select", "USWDS Text Input", "USWDS Date Picker", "USWDS Checkbox"],
+          "fields": [
+            "Name (required)",
+            "Description",
+            "Version",
+            "Lifecycle Status (required, controlled)",
+            "Manufacturer / Vendor",
+            "Cloud Service Provider",
+            "Operating System",
+            "OS Version",
+            "Contract Number",
+            "License Number",
+            "In Service Production Date",
+            "Retirement Date",
+            "Is Unsupported Version",
+            "Is Updatable",
+            "Is Aging Technology",
+            "Is AI Enabled",
+            "Is Generative AI"
+          ],
+          "actions": ["Save", "Cancel"]
+        },
+        {
+          "screen": "Retire Confirmation",
+          "description": "Confirmation modal before retiring an application. Clearly states this is reversible. Requires user to confirm.",
+          "components": ["USWDS Modal", "USWDS Button (destructive style)"],
+          "actions": ["Confirm Retire", "Cancel"]
+        },
+        {
+          "screen": "Revert Confirmation",
+          "description": "Confirmation modal before reverting a retired application back to active. Shows previous lifecycle status.",
+          "components": ["USWDS Modal"],
+          "actions": ["Confirm Revert", "Cancel"]
+        },
+        {
+          "screen": "Annual Certification",
+          "description": "Certification flow for agency_admin. Shows certification checklist: total records reviewed, stale records blocking submission, and attestation statement. Blocked if stale records exceed threshold defined in business rules.",
+          "components": ["USWDS Step Indicator", "USWDS Summary Box", "USWDS Alert", "USWDS Checkbox for attestation"],
+          "steps": [
+            "Review inventory summary",
+            "Resolve stale records (if any)",
+            "Attest and submit"
+          ],
+          "actions": ["Resolve Stale Records", "Attest & Submit", "Save Progress"]
+        },
+        {
+          "screen": "Notifications",
+          "description": "In-app notification center. Lists all notifications for the user with read/unread status. Links directly to relevant application record.",
+          "components": ["USWDS List", "USWDS Tag (unread indicator)"],
+          "actions": ["Mark as Read", "Go to Application"]
+        }
+      ]
+    },
+
+    "watech_admin": {
+      "applicableTo": ["watech_admin"],
+      "screens": [
+        {
+          "screen": "Admin Dashboard",
+          "description": "Cross-agency overview. Shows statewide summary: total agencies, total applications, agencies with stale records, certification completion by agency for current year.",
+          "components": ["USWDS Summary Boxes", "USWDS Table", "USWDS Progress Indicator per agency"],
+          "actions": ["Select Agency to drill down", "View Portfolio Intelligence", "Manage Business Rules", "Manage Users"]
+        },
+        {
+          "screen": "Agency Drill Down",
+          "description": "Same as agency Application List view but accessed by WaTech admin for any agency. Agency name always visible in header for context.",
+          "actions": ["View Application", "Edit Application", "Export Agency Data"]
+        },
+        {
+          "screen": "Portfolio Intelligence",
+          "description": "Cross-agency analysis view. Filterable by vendor, technology type, lifecycle status, AI enablement. Highlights duplication and consolidation candidates.",
+          "components": ["USWDS Table", "USWDS Filter", "USWDS Summary Boxes"],
+          "views": [
+            "Applications by Vendor (across all agencies)",
+            "Applications by Lifecycle Status",
+            "AI Enabled Applications",
+            "Aging Technology by Agency",
+            "Central Services Candidates (same vendor/type used by 3+ agencies)"
+          ],
+          "actions": ["Export", "Filter", "Sort"]
+        },
+        {
+          "screen": "Business Rules Configuration",
+          "description": "Admin UI for configuring notification thresholds, staleness rules, and certification deadlines. No code deployment required.",
+          "components": ["USWDS Form", "USWDS Number Input", "USWDS Select", "USWDS Toggle"],
+          "configurableRules": [
+            "Staleness warning threshold (days)",
+            "Staleness critical threshold (days)",
+            "Certification reminder lead time (days)",
+            "Stale threshold that blocks certification (days)",
+            "Notification channels (email, in-app)",
+            "Enable/disable individual notification triggers"
+          ],
+          "actions": ["Save Rules", "Reset to Defaults", "Preview Affected Records"]
+        },
+        {
+          "screen": "User Management",
+          "description": "Manage users and role assignments across all agencies. WaTech admins can assign roles; agency admins can manage their own agency users only.",
+          "components": ["USWDS Table", "USWDS Select for role assignment"],
+          "actions": ["Assign Role", "Remove Role", "Filter by Agency"]
+        },
+        {
+          "screen": "Certification Approval",
+          "description": "Review and approve annual certification submissions from agencies. Shows submission date, submitter, and inventory summary.",
+          "components": ["USWDS Table", "USWDS Status Indicator"],
+          "actions": ["Approve Certification", "Request Revision"]
+        }
+      ]
+    }
+  }
+}
