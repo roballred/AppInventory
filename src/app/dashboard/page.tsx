@@ -5,9 +5,13 @@ import { eq, and } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
 import { applications } from '@/lib/db/schema'
-import type { LifecycleStatus } from '@/lib/db/schema'
+import type { LifecycleStatus, CertificationStatus } from '@/lib/db/schema'
 import { getStaleness } from '@/lib/staleness'
 import { getAgencyFilter, canEditApplication } from '@/lib/permissions'
+import {
+  getCertification,
+  getCurrentCertificationYear,
+} from '@/lib/certification'
 
 const LIFECYCLE_LABELS: Record<LifecycleStatus, string> = {
   in_development: 'In Development',
@@ -37,6 +41,16 @@ export default async function DashboardPage() {
   const agencyFilter = getAgencyFilter(session)
   const canEdit = canEditApplication(session)
   const isPlatformAdmin = user.role === 'platform_admin'
+  const isAgencyAdmin = user.role === 'agency_admin'
+
+  // Certification status for agency admins
+  let certificationYear: number | null = null
+  let certificationStatus: CertificationStatus | null = null
+  if (isAgencyAdmin && agencyFilter) {
+    certificationYear = await getCurrentCertificationYear()
+    const cert = await getCertification(agencyFilter, certificationYear)
+    certificationStatus = cert?.status ?? 'not_started'
+  }
 
   // Fetch all relevant applications
   const rows = agencyFilter
@@ -157,6 +171,53 @@ export default async function DashboardPage() {
           >
             Review stale records
           </Link>
+        </div>
+      )}
+
+      {/* Certification status card — agency_admin only */}
+      {isAgencyAdmin && certificationYear !== null && (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+              Certification Status
+            </h2>
+            <span className="text-xs text-gray-400">{certificationYear}</span>
+          </div>
+          <div className="px-5 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {certificationStatus === 'approved' ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Certified
+                </span>
+              ) : certificationStatus === 'submitted' ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  Submitted — Awaiting Approval
+                </span>
+              ) : certificationStatus === 'revision_requested' ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Revision Requested
+                </span>
+              ) : certificationStatus === 'in_progress' ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  In Progress
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  Not Started
+                </span>
+              )}
+            </div>
+            <Link
+              href="/dashboard/certification"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800 underline"
+            >
+              {certificationStatus === 'approved'
+                ? 'View certification'
+                : certificationStatus === 'submitted'
+                ? 'View status'
+                : 'Go to certification'}
+            </Link>
+          </div>
         </div>
       )}
 

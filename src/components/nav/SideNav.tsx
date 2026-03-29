@@ -47,8 +47,12 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
     {
       href: '/dashboard/certification',
       label: 'Certification',
-      comingSoon: true,
       hidden: !isAgencyAdmin,
+    },
+    {
+      href: '/admin/certifications',
+      label: 'Certifications',
+      hidden: !isPlatformAdmin,
     },
     {
       href: '/admin/data-quality',

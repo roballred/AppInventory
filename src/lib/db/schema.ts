@@ -8,6 +8,8 @@ import {
   date,
   boolean,
   jsonb,
+  integer,
+  unique,
 } from 'drizzle-orm/pg-core'
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -160,6 +162,43 @@ export const reviewAssignments = pgTable('review_assignments', {
   notes: text('notes'),
 })
 
+// ─── certificationStatusEnum ──────────────────────────────────────────────────
+
+export const certificationStatusEnum = pgEnum('certification_status', [
+  'not_started',
+  'in_progress',
+  'submitted',
+  'approved',
+  'revision_requested',
+])
+
+// ─── certifications ───────────────────────────────────────────────────────────
+
+export const certifications = pgTable(
+  'certifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    agencyId: uuid('agency_id').notNull().references(() => agencies.id),
+    year: integer('year').notNull(),
+    status: certificationStatusEnum('status').notNull().default('not_started'),
+    submittedAt: timestamp('submitted_at'),
+    submittedById: varchar('submitted_by_id', { length: 255 }),
+    submittedByEmail: varchar('submitted_by_email', { length: 255 }),
+    approvedAt: timestamp('approved_at'),
+    approvedById: varchar('approved_by_id', { length: 255 }),
+    approvedByEmail: varchar('approved_by_email', { length: 255 }),
+    revisionRequestedAt: timestamp('revision_requested_at'),
+    revisionNotes: text('revision_notes'),
+    recordCount: integer('record_count'),
+    criticalStaleCount: integer('critical_stale_count'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    agencyYearUnique: unique().on(table.agencyId, table.year),
+  })
+)
+
 // ─── Exported types ───────────────────────────────────────────────────────────
 
 export type Agency = typeof agencies.$inferSelect
@@ -168,7 +207,9 @@ export type ApplicationAuditLog = typeof applicationAuditLog.$inferSelect
 export type BusinessRule = typeof businessRules.$inferSelect
 export type WorkQueueDismissal = typeof workQueueDismissals.$inferSelect
 export type ReviewAssignment = typeof reviewAssignments.$inferSelect
+export type Certification = typeof certifications.$inferSelect
 export type NewApplication = typeof applications.$inferInsert
 export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
 export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]
 export type CoreBusinessFunction = (typeof coreBusinessFunctionEnum.enumValues)[number]
+export type CertificationStatus = (typeof certificationStatusEnum.enumValues)[number]
