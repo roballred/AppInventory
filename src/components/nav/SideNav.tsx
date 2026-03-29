@@ -68,7 +68,6 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
     {
       href: '/admin/portfolio',
       label: 'Portfolio',
-      comingSoon: true,
       hidden: !isPlatformAdmin,
     },
     {
