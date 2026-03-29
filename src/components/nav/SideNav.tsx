@@ -62,7 +62,6 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
     {
       href: '/admin/data-quality',
       label: 'Data Quality',
-      comingSoon: true,
       hidden: !isPlatformAdmin,
     },
     {
