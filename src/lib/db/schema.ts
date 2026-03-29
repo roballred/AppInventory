@@ -181,6 +181,40 @@ export const users = pgTable('users', {
   lastSignedInAt: timestamp('last_signed_in_at'),
 })
 
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'staleness_warning',
+  'staleness_critical',
+  'certification_deadline',
+  'assignment',
+])
+
+// ─── notifications ────────────────────────────────────────────────────────────
+
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  agencyId: uuid('agency_id').notNull().references(() => agencies.id),
+  /** null = broadcast to all agency users; set = targeted at a specific user */
+  userId: varchar('user_id', { length: 255 }),
+  type: notificationTypeEnum('type').notNull(),
+  /** applicationId for staleness/assignment notifications; null for deadline */
+  applicationId: uuid('application_id').references(() => applications.id),
+  title: varchar('title', { length: 255 }).notNull(),
+  body: text('body').notNull(),
+  /** When the user read this notification; null = unread */
+  readAt: timestamp('read_at'),
+  /**
+   * Deduplication key — prevents generating duplicate notifications for the same
+   * trigger within the same day.
+   * Format:
+   *   staleness_warning:{applicationId}:{YYYY-MM-DD}
+   *   staleness_critical:{applicationId}:{YYYY-MM-DD}
+   *   certification_deadline:{agencyId}:{YYYY-MM-DD}
+   *   assignment:{applicationId}:{assignedToId}:{YYYY-MM-DD}
+   */
+  dedupeKey: varchar('dedupe_key', { length: 500 }).unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 // ─── certificationStatusEnum ──────────────────────────────────────────────────
 
 export const certificationStatusEnum = pgEnum('certification_status', [
@@ -234,3 +268,6 @@ export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
 export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]
 export type CoreBusinessFunction = (typeof coreBusinessFunctionEnum.enumValues)[number]
 export type CertificationStatus = (typeof certificationStatusEnum.enumValues)[number]
+export type Notification = typeof notifications.$inferSelect
+export type NewNotification = typeof notifications.$inferInsert
+export type NotificationType = (typeof notificationTypeEnum.enumValues)[number]

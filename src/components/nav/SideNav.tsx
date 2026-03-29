@@ -72,6 +72,11 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
       hidden: !isPlatformAdmin,
     },
     {
+      href: '/dashboard/notifications',
+      label: 'Notifications',
+      hidden: isPlatformAdmin,
+    },
+    {
       href: '/dashboard/dev-tools',
       label: '🧪 Testing',
       hidden: !isDevMode,

@@ -98,6 +98,24 @@ export async function POST(request: NextRequest) {
     })
     .returning()
 
+  // Send in-app notification to the assignee (ISSUE-17 fix + CAP-04)
+  try {
+    const { createAssignmentNotification } = await import('@/lib/notifications')
+    await createAssignmentNotification({
+      agencyId,
+      applicationId,
+      applicationName: application.name,
+      assignedToId,
+      assignedByName: user.name ?? user.email ?? 'A team member',
+    })
+  } catch (err) {
+    // Non-fatal — assignment was created, notification is best-effort
+    const { logger } = await import('@/lib/logger')
+    logger.error('api.review-assignments', 'Failed to create assignment notification', {
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
+
   return NextResponse.json(created, { status: 201 })
 }
 

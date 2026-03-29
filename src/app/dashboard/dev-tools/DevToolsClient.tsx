@@ -207,6 +207,60 @@ export default function DevToolsClient() {
           <div><span className="font-medium text-gray-900">Viewer</span> — Read-only, Dev Test Agency</div>
         </div>
       </div>
+
+      {/* Notifications section */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1">Notification Engine</h3>
+        <p className="text-xs text-gray-500 mb-3">
+          Trigger notification generation for all agencies. Staleness and deadline notifications are created based on current data. Duplicate notifications for today are skipped.
+        </p>
+        <GenerateNotificationsButton />
+      </div>
+    </div>
+  )
+}
+
+function GenerateNotificationsButton() {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [result, setResult] = useState<string | null>(null)
+
+  async function generate() {
+    setStatus('loading')
+    setResult(null)
+    try {
+      const res = await fetch('/api/notifications/generate', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setStatus('error')
+        setResult(data.error ?? 'Generation failed.')
+        return
+      }
+      const total = (data.results ?? []).reduce(
+        (s: number, r: any) => s + r.staleness.warning + r.staleness.critical + (r.certDeadline ? 1 : 0),
+        0
+      )
+      setStatus('done')
+      setResult(`Generated ${total} new notification(s) across ${data.results?.length ?? 0} agenc${data.results?.length === 1 ? 'y' : 'ies'}.`)
+    } catch {
+      setStatus('error')
+      setResult('Network error.')
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <button
+        onClick={generate}
+        disabled={status === 'loading'}
+        className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+      >
+        {status === 'loading' ? 'Generating…' : '🔔 Generate Notifications Now'}
+      </button>
+      {result && (
+        <p className={`text-xs ${status === 'error' ? 'text-red-600' : 'text-green-700'}`}>
+          {result}
+        </p>
+      )}
     </div>
   )
 }

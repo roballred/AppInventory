@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth/auth'
 import SideNav from '@/components/nav/SideNav'
 import SignOutButton from '@/components/SignOutButton'
 import DevUserSwitcher from '@/components/nav/DevUserSwitcher'
+import NotificationBell from '@/components/NotificationBell'
 
 const ROLE_LABELS: Record<string, string> = {
   platform_admin: 'Platform Admin',
@@ -43,6 +44,7 @@ export default async function DashboardLayout({
               <p className="text-gray-500">{roleLabel}</p>
             </div>
           )}
+          <NotificationBell />
           <SignOutButton />
         </div>
       </header>
