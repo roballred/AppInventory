@@ -145,14 +145,15 @@ export async function computeRiskDashboard(
       atRiskIds.add(app.id)
     }
 
-    // Approaching staleness: days since review is between (critical - 30) and critical
-    // i.e., currently warning-level but will become critical within 30 days
-    if (days >= thresholds.critical - 30 && days < thresholds.critical) {
+    // Approaching staleness: any record at or past the warning threshold.
+    // Includes critically stale records (ISSUE-15 fix) — they are the highest-risk
+    // subset of this category. daysUntilCritical is 0 for records already past critical.
+    if (days >= thresholds.warning) {
       approachingStaleness.push({
         application: app,
         category: 'approaching_staleness',
         categoryLabel: CATEGORY_LABELS.approaching_staleness,
-        isUnverified: false, // never unverified for staleness category
+        isUnverified: false,
         daysUntilCritical: Math.max(0, daysUntilCritical),
         openAssignment,
       })
