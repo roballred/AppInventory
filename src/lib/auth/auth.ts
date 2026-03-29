@@ -49,9 +49,9 @@ export const authOptions: NextAuthOptions = {
       ],
 
   callbacks: {
-    // KNOWN LIMITATION (issue #14): Role and agencyId are embedded in the JWT at sign-in.
-    // Changes made by a platform admin take effect on the user's next sign-in (max 8 hours).
-    // Before CAP-05 (certification), add server-side role re-validation for sensitive operations.
+    // KNOWN LIMITATION (ISSUE-01): Role and agencyId are embedded in the JWT at sign-in.
+    // Changes made by a platform admin take effect on the user's next sign-in (max 2 hours).
+    // Full server-side invalidation requires the users table (ISSUE-22).
     // See: https://github.com/roballred/AppInventory/issues/14
     async jwt({ token, user }) {
       // On sign-in, attach role and agency to the JWT
@@ -80,6 +80,10 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // 8 hours — standard government workday session
+    // ISSUE-01 fix: Reduced from 8h to 2h to limit the role-revocation window.
+    // If a user's role is changed by a platform admin, their existing JWT remains
+    // valid until expiry — this is an accepted residual risk of up to 2 hours.
+    // Full server-side session invalidation requires the users table (ISSUE-22).
+    maxAge: 2 * 60 * 60, // 2 hours
   },
 }

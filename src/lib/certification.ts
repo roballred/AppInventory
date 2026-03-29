@@ -2,7 +2,7 @@
  * Certification helpers for CAP-05 — Annual Certification.
  */
 
-import { and, eq, lt, count } from 'drizzle-orm'
+import { and, eq, lt, ne, count } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { businessRules, certifications, applications } from '@/lib/db/schema'
 import type { Certification, Application } from '@/lib/db/schema'
@@ -91,7 +91,13 @@ export async function getCriticalStaleCount(
   const [{ value }] = await db
     .select({ value: count() })
     .from(applications)
-    .where(and(eq(applications.agencyId, agencyId), lt(applications.lastReviewedAt, cutoff)))
+    .where(
+      and(
+        eq(applications.agencyId, agencyId),
+        ne(applications.lifecycleStatus, 'retired_from_inventory'),
+        lt(applications.lastReviewedAt, cutoff)
+      )
+    )
 
   return Number(value)
 }
@@ -108,5 +114,11 @@ export async function getCriticalStaleApplications(
   return db
     .select()
     .from(applications)
-    .where(and(eq(applications.agencyId, agencyId), lt(applications.lastReviewedAt, cutoff)))
+    .where(
+      and(
+        eq(applications.agencyId, agencyId),
+        ne(applications.lifecycleStatus, 'retired_from_inventory'),
+        lt(applications.lastReviewedAt, cutoff)
+      )
+    )
 }

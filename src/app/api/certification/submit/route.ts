@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { and, eq, count } from 'drizzle-orm'
+import { and, eq, ne, count } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
 import { applications, certifications } from '@/lib/db/schema'

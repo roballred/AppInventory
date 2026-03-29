@@ -272,10 +272,26 @@ export async function PATCH(
     newStatus = 'retired_from_inventory'
     auditAction = 'retired'
   } else {
-    // revert — previousLifecycleStatus is required
+    // revert — previousLifecycleStatus is required and must be a valid enum value
     if (!body.previousLifecycleStatus) {
       return NextResponse.json(
         { error: 'previousLifecycleStatus is required when action is "revert"' },
+        { status: 400 }
+      )
+    }
+
+    const VALID_LIFECYCLE_STATUSES: LifecycleStatus[] = [
+      'in_development',
+      'in_production',
+      'retirement_in_progress',
+      'retired_from_inventory',
+    ]
+
+    if (!VALID_LIFECYCLE_STATUSES.includes(body.previousLifecycleStatus as LifecycleStatus)) {
+      return NextResponse.json(
+        {
+          error: `Invalid previousLifecycleStatus "${body.previousLifecycleStatus}". Must be one of: ${VALID_LIFECYCLE_STATUSES.join(', ')}`,
+        },
         { status: 400 }
       )
     }

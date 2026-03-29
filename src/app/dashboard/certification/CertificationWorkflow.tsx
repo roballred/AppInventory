@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import type { Certification, Application } from '@/lib/db/schema'
 
@@ -25,11 +25,6 @@ const LIFECYCLE_LABELS: Record<string, string> = {
 function formatDate(iso: string): string {
   const d = new Date(iso)
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-function formatDateShort(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -76,11 +71,32 @@ export default function CertificationWorkflow({
   year,
   deadline,
   totalApps,
-  criticalStaleApps,
+  criticalStaleApps: initialCriticalStaleApps,
   warningCount,
   lifecycleCounts,
   agencyName,
 }: CertificationWorkflowProps) {
+  // Live critical stale apps — refreshed on demand to prevent stale-prop submission blocking
+  const [criticalStaleApps, setCriticalStaleApps] = useState<Application[]>(initialCriticalStaleApps)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+
+  const refreshCriticalStale = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const res = await fetch('/api/certification/critical-stale')
+      if (res.ok) {
+        const data = await res.json()
+        setCriticalStaleApps(data.criticalStaleApps ?? [])
+        setRefreshedAt(new Date())
+      }
+    } catch {
+      // silently fail — user can try again
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [])
+
   // Determine initial step from certification status
   const getInitialStep = () => {
     if (!certification || certification.status === 'not_started') return 1
@@ -239,15 +255,31 @@ export default function CertificationWorkflow({
       {/* ── Step 1 — Review Inventory Summary ─────────────────────────────── */}
       {step === 1 && (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="text-base font-semibold text-gray-900">
-              Step 1 — Review Inventory Summary
-            </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Deadline: {formatDate(deadline)}
-            </p>
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">
+                Step 1 — Review Inventory Summary
+              </h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Deadline: {formatDate(deadline)}
+              </p>
+            </div>
+            <button
+              onClick={refreshCriticalStale}
+              disabled={isRefreshing}
+              className="text-xs text-blue-600 hover:text-blue-800 underline disabled:opacity-50"
+              title="Refresh stale record counts"
+            >
+              {isRefreshing ? 'Refreshing…' : 'Refresh status'}
+            </button>
           </div>
           <div className="px-5 py-4 space-y-4">
+            {refreshedAt && (
+              <p className="text-xs text-gray-400">
+                Status refreshed at {refreshedAt.toLocaleTimeString()}
+              </p>
+            )}
+
             {/* Summary stats */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="bg-gray-50 rounded-md p-3">
@@ -337,12 +369,24 @@ export default function CertificationWorkflow({
       {/* ── Step 2 — Resolve Stale Records ────────────────────────────────── */}
       {step === 2 && criticalStaleApps.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-100">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">
               Step 2 — Resolve Stale Records
             </h2>
+            <button
+              onClick={refreshCriticalStale}
+              disabled={isRefreshing}
+              className="text-xs text-blue-600 hover:text-blue-800 underline disabled:opacity-50"
+            >
+              {isRefreshing ? 'Refreshing…' : 'Refresh status'}
+            </button>
           </div>
           <div className="px-5 py-4 space-y-4">
+            {refreshedAt && (
+              <p className="text-xs text-gray-400">
+                Status refreshed at {refreshedAt.toLocaleTimeString()}
+              </p>
+            )}
             <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3">
               <p className="text-sm text-red-800">
                 These {criticalStaleApps.length} record
@@ -364,7 +408,7 @@ export default function CertificationWorkflow({
                       <p className="text-xs text-red-600">{days} days since last review</p>
                     </div>
                     <Link
-                      href={`/dashboard/applications/${app.id}/edit`}
+                      href={`/dashboard/applications/${app.id}/edit?returnTo=certification`}
                       className="text-sm font-medium text-blue-600 hover:text-blue-800 underline"
                     >
                       Update record
@@ -374,13 +418,21 @@ export default function CertificationWorkflow({
               })}
             </ul>
 
-            <div className="pt-1">
+            <div className="pt-1 flex flex-wrap items-center gap-4">
               <button
                 onClick={() => setStep(1)}
                 className="text-sm text-gray-500 hover:text-gray-700 underline"
               >
                 &larr; Return to Step 1
               </button>
+              {criticalStaleApps.length === 0 && (
+                <button
+                  onClick={() => setStep(totalSteps)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  All resolved — Continue to Attestation
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -389,12 +441,25 @@ export default function CertificationWorkflow({
       {/* ── Step 3 / Last Step — Attest and Submit ────────────────────────── */}
       {step === totalSteps && (
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-100">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">
               Step {totalSteps} — Attest and Submit
             </h2>
+            <button
+              onClick={refreshCriticalStale}
+              disabled={isRefreshing}
+              className="text-xs text-blue-600 hover:text-blue-800 underline disabled:opacity-50"
+            >
+              {isRefreshing ? 'Refreshing…' : 'Refresh status'}
+            </button>
           </div>
           <div className="px-5 py-4 space-y-4">
+            {refreshedAt && (
+              <p className="text-xs text-gray-400">
+                Status refreshed at {refreshedAt.toLocaleTimeString()}
+              </p>
+            )}
+
             {/* Summary */}
             <div className="bg-gray-50 rounded-md px-4 py-3">
               <p className="text-sm text-gray-700">
@@ -461,12 +526,20 @@ export default function CertificationWorkflow({
                   setIsSubmitting(true)
                   setSubmitError(null)
                   try {
+                    // Refresh live count immediately before submitting (ISSUE-04 fix)
+                    await refreshCriticalStale()
+                    // The refreshCriticalStale call updates state — re-check will happen
+                    // on next render. Submit proceeds; server will re-validate authoritatively.
                     const res = await fetch('/api/certification/submit', {
                       method: 'POST',
                     })
                     if (!res.ok) {
                       const data = await res.json()
                       setSubmitError(data.error ?? 'Submission failed. Please try again.')
+                      // If the server blocked it due to critical stale records, surface the fresh count
+                      if (data.blockers) {
+                        setCriticalStaleApps(data.blockers)
+                      }
                       return
                     }
                     const cert = await res.json()
