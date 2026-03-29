@@ -1,34 +1,19 @@
-'use client'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
+import { authOptions } from '@/lib/auth/auth'
+import { canEditApplication } from '@/lib/permissions'
+import NewApplicationClient from './NewApplicationClient'
 
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import ApplicationForm from '@/components/ApplicationForm'
+export default async function NewApplicationPage() {
+  const session = await getServerSession(authOptions)
+  if (!session) redirect('/login')
 
-export default function NewApplicationPage() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
-
-  if (status === 'loading') {
-    return (
-      <div className="max-w-3xl">
-        <p className="text-sm text-gray-500">Loading...</p>
-      </div>
-    )
-  }
-
-  if (!session) {
-    router.replace('/login')
-    return null
+  // Viewers cannot add applications
+  if (!canEditApplication(session)) {
+    redirect('/dashboard/applications')
   }
 
   const user = session.user as any
-
-  // Viewer cannot add applications
-  if (user.role === 'viewer') {
-    router.replace('/dashboard/applications')
-    return null
-  }
-
   const agencyId = user.agencyId as string
 
   if (!agencyId) {
@@ -47,10 +32,7 @@ export default function NewApplicationPage() {
         <h1 className="text-2xl font-bold text-gray-900">Add Application</h1>
         <p className="text-sm text-gray-500 mt-0.5">Add a new application to your inventory.</p>
       </div>
-      <ApplicationForm
-        agencyId={agencyId}
-        onSuccess={(id) => router.push(`/dashboard/applications/${id}`)}
-      />
+      <NewApplicationClient agencyId={agencyId} />
     </div>
   )
 }
