@@ -66,6 +66,11 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
       comingSoon: true,
       hidden: !isPlatformAdmin,
     },
+    {
+      href: '/dashboard/dev-tools',
+      label: '🧪 Testing',
+      hidden: !isDevMode,
+    },
   ]
 
   return (

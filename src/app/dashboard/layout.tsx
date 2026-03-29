@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { authOptions } from '@/lib/auth/auth'
 import SideNav from '@/components/nav/SideNav'
 import SignOutButton from '@/components/SignOutButton'
+import DevUserSwitcher from '@/components/nav/DevUserSwitcher'
 
 const ROLE_LABELS: Record<string, string> = {
   platform_admin: 'Platform Admin',
@@ -34,10 +35,14 @@ export default async function DashboardLayout({
           State Application Inventory
         </Link>
         <div className="flex items-center gap-4">
-          <div className="text-right text-sm">
-            <p className="font-medium text-gray-900">{user.name ?? user.email}</p>
-            <p className="text-gray-500">{roleLabel}</p>
-          </div>
+          {isDevMode ? (
+            <DevUserSwitcher currentEmail={user.email ?? ''} />
+          ) : (
+            <div className="text-right text-sm">
+              <p className="font-medium text-gray-900">{user.name ?? user.email}</p>
+              <p className="text-gray-500">{roleLabel}</p>
+            </div>
+          )}
           <SignOutButton />
         </div>
       </header>
