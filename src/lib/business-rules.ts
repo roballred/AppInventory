@@ -6,6 +6,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { businessRules } from '@/lib/db/schema'
+import { logger } from '@/lib/logger'
 
 export const DEFAULT_THRESHOLDS = { warning: 90, critical: 180 }
 
@@ -33,7 +34,10 @@ export async function getStalenessThresholds(): Promise<{ warning: number; criti
       warning: Number.isFinite(warning) ? warning : DEFAULT_THRESHOLDS.warning,
       critical: Number.isFinite(critical) ? critical : DEFAULT_THRESHOLDS.critical,
     }
-  } catch {
+  } catch (err) {
+    logger.warn('business-rules', 'Failed to load staleness thresholds from DB — using defaults', {
+      error: err instanceof Error ? err.message : String(err),
+    })
     return DEFAULT_THRESHOLDS
   }
 }

@@ -8,6 +8,7 @@ import type { LifecycleStatus, BusinessCriticality, CoreBusinessFunction } from 
 import { canEditApplication, canViewApplications, getAgencyFilter } from '@/lib/permissions'
 import { getStaleness, getDaysSinceReview, STALENESS_THRESHOLDS } from '@/lib/staleness'
 import { getStalenessThresholds } from '@/lib/business-rules'
+import { logger } from '@/lib/logger'
 
 // ─── GET /api/applications ────────────────────────────────────────────────────
 
@@ -170,53 +171,62 @@ export async function POST(request: NextRequest) {
 
   const now = new Date()
 
-  const [created] = await db
-    .insert(applications)
-    .values({
-      agencyId,
-      name: (body.name as string).trim(),
-      description: (body.description as string | undefined) ?? null,
-      version: (body.version as string | undefined) ?? null,
-      lifecycleStatus: body.lifecycleStatus as LifecycleStatus,
-      manufacturerVendor: (body.manufacturerVendor as string | undefined) ?? null,
-      cloudServiceProvider: (body.cloudServiceProvider as string | undefined) ?? null,
-      operatingSystem: (body.operatingSystem as string | undefined) ?? null,
-      osVersion: (body.osVersion as string | undefined) ?? null,
-      contractNumber: (body.contractNumber as string | undefined) ?? null,
-      licenseNumber: (body.licenseNumber as string | undefined) ?? null,
-      technicalOwner: (body.technicalOwner as string | undefined) ?? null,
-      technicalOwnerEmail: (body.technicalOwnerEmail as string | undefined) ?? null,
-      inServiceDate: (body.inServiceDate as string | undefined) ?? null,
-      retirementDate: (body.retirementDate as string | undefined) ?? null,
-      isUnsupportedVersion: (body.isUnsupportedVersion as boolean | undefined) ?? false,
-      isUpdatable: (body.isUpdatable as boolean | undefined) ?? true,
-      isAgingTechnology: (body.isAgingTechnology as boolean | undefined) ?? false,
-      isAiEnabled: (body.isAiEnabled as boolean | undefined) ?? false,
-      isGenerativeAi: (body.isGenerativeAi as boolean | undefined) ?? false,
-      businessCriticality: (body.businessCriticality as BusinessCriticality | undefined) ?? null,
-      coreBusinessFunction:
-        (body.coreBusinessFunction as CoreBusinessFunction | undefined) ?? null,
-      riskFieldsLastVerifiedAt: null,
-      lastReviewedAt: now,
-      createdAt: now,
-      updatedAt: now,
-      createdById: user.email ?? user.id ?? 'unknown',
-      updatedById: user.email ?? user.id ?? 'unknown',
+  try {
+    const [created] = await db
+      .insert(applications)
+      .values({
+        agencyId,
+        name: (body.name as string).trim(),
+        description: (body.description as string | undefined) ?? null,
+        version: (body.version as string | undefined) ?? null,
+        lifecycleStatus: body.lifecycleStatus as LifecycleStatus,
+        manufacturerVendor: (body.manufacturerVendor as string | undefined) ?? null,
+        cloudServiceProvider: (body.cloudServiceProvider as string | undefined) ?? null,
+        operatingSystem: (body.operatingSystem as string | undefined) ?? null,
+        osVersion: (body.osVersion as string | undefined) ?? null,
+        contractNumber: (body.contractNumber as string | undefined) ?? null,
+        licenseNumber: (body.licenseNumber as string | undefined) ?? null,
+        technicalOwner: (body.technicalOwner as string | undefined) ?? null,
+        technicalOwnerEmail: (body.technicalOwnerEmail as string | undefined) ?? null,
+        inServiceDate: (body.inServiceDate as string | undefined) ?? null,
+        retirementDate: (body.retirementDate as string | undefined) ?? null,
+        isUnsupportedVersion: (body.isUnsupportedVersion as boolean | undefined) ?? false,
+        isUpdatable: (body.isUpdatable as boolean | undefined) ?? true,
+        isAgingTechnology: (body.isAgingTechnology as boolean | undefined) ?? false,
+        isAiEnabled: (body.isAiEnabled as boolean | undefined) ?? false,
+        isGenerativeAi: (body.isGenerativeAi as boolean | undefined) ?? false,
+        businessCriticality: (body.businessCriticality as BusinessCriticality | undefined) ?? null,
+        coreBusinessFunction:
+          (body.coreBusinessFunction as CoreBusinessFunction | undefined) ?? null,
+        riskFieldsLastVerifiedAt: null,
+        lastReviewedAt: now,
+        createdAt: now,
+        updatedAt: now,
+        createdById: user.email ?? user.id ?? 'unknown',
+        updatedById: user.email ?? user.id ?? 'unknown',
+      })
+      .returning()
+
+    // Audit log — capture all non-null field values as { old: null, new: value }
+    await db.insert(applicationAuditLog).values({
+      applicationId: created.id,
+      userId: user.email ?? user.id ?? 'unknown',
+      userEmail: user.email ?? 'unknown',
+      action: 'created',
+      changedFields: Object.fromEntries(
+        Object.entries(created)
+          .filter(([, v]) => v !== null && v !== undefined)
+          .map(([k, v]) => [k, { old: null, new: v }])
+      ),
     })
-    .returning()
 
-  // Audit log — capture all non-null field values as { old: null, new: value }
-  await db.insert(applicationAuditLog).values({
-    applicationId: created.id,
-    userId: user.email ?? user.id ?? 'unknown',
-    userEmail: user.email ?? 'unknown',
-    action: 'created',
-    changedFields: Object.fromEntries(
-      Object.entries(created)
-        .filter(([, v]) => v !== null && v !== undefined)
-        .map(([k, v]) => [k, { old: null, new: v }])
-    ),
-  })
-
-  return NextResponse.json(created, { status: 201 })
+    return NextResponse.json(created, { status: 201 })
+  } catch (err) {
+    logger.error('api.applications', 'Failed to create application', {
+      error: err instanceof Error ? err.message : String(err),
+      agencyId,
+      userId: user.email ?? user.id,
+    })
+    return NextResponse.json({ error: 'Failed to create application' }, { status: 500 })
+  }
 }

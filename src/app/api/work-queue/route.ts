@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { and, eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
-import { workQueueDismissals } from '@/lib/db/schema'
+import { applications, workQueueDismissals } from '@/lib/db/schema'
 import { getStalenessThresholds } from '@/lib/business-rules'
 import { computeWorkQueue } from '@/lib/work-queue'
 import type { QueueItemReason } from '@/lib/work-queue'
@@ -70,6 +71,24 @@ export async function POST(request: NextRequest) {
   }
 
   const userId: string = user.email ?? user.id ?? 'unknown'
+
+  // Verify the application belongs to this user's agency (ISSUE-07)
+  const agencyId: string | null = user.agencyId ?? null
+  if (!agencyId) {
+    return NextResponse.json({ error: 'No agency assigned to this user' }, { status: 400 })
+  }
+
+  const [application] = await db
+    .select({ id: applications.id })
+    .from(applications)
+    .where(and(eq(applications.id, applicationId), eq(applications.agencyId, agencyId)))
+
+  if (!application) {
+    return NextResponse.json(
+      { error: 'Application not found or does not belong to your agency' },
+      { status: 403 }
+    )
+  }
 
   const now = new Date()
   const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) // 7 days

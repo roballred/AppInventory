@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from './schema'
+import { logger } from '@/lib/logger'
 
 // Singleton pool — prevents multiple pools being created during Next.js hot-reload in dev.
 // Pool config: max 10 connections, 30s idle timeout, 5s connection timeout.
@@ -16,9 +17,7 @@ if (!globalForPool._pgPool) {
   })
 
   globalForPool._pgPool.on('error', (err) => {
-    // Pool errors are logged here so they surface in production log aggregators.
-    // Tied to ISSUE-14 (structured logging) — replace console.error with logger when available.
-    console.error('[db] Unexpected pool error:', err)
+    logger.error('db.pool', 'Unexpected pool client error', { error: err.message })
   })
 }
 

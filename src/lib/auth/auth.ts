@@ -49,6 +49,37 @@ export const authOptions: NextAuthOptions = {
       ],
 
   callbacks: {
+    async signIn({ user, account }) {
+      // Upsert user record on every sign-in to keep role/agency in sync (ISSUE-22)
+      // In dev bypass mode, user data comes from DEV_USERS — skip DB upsert to avoid
+      // needing a real DB during unit tests.
+      if (process.env.AUTH_BYPASS === 'true' && process.env.NODE_ENV !== 'production') {
+        return true
+      }
+      try {
+        const { db } = await import('@/lib/db')
+        const { users } = await import('@/lib/db/schema')
+        const { eq } = await import('drizzle-orm')
+        await db
+          .insert(users)
+          .values({
+            email: user.email ?? '',
+            displayName: user.name ?? null,
+            lastSignedInAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: users.email,
+            set: {
+              displayName: user.name ?? null,
+              lastSignedInAt: new Date(),
+            },
+          })
+      } catch (err) {
+        // Log but don't block sign-in on upsert failure
+        console.error('[auth] Failed to upsert user record:', err)
+      }
+      return true
+    },
     // KNOWN LIMITATION (ISSUE-01): Role and agencyId are embedded in the JWT at sign-in.
     // Changes made by a platform admin take effect on the user's next sign-in (max 2 hours).
     // Full server-side invalidation requires the users table (ISSUE-22).

@@ -162,6 +162,25 @@ export const reviewAssignments = pgTable('review_assignments', {
   notes: text('notes'),
 })
 
+export const roleEnum = pgEnum('user_role', [
+  'platform_admin',
+  'agency_admin',
+  'submitter',
+  'viewer',
+])
+
+// ─── users ────────────────────────────────────────────────────────────────────
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  displayName: varchar('display_name', { length: 255 }),
+  agencyId: uuid('agency_id').references(() => agencies.id),
+  role: roleEnum('role').notNull().default('viewer'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  lastSignedInAt: timestamp('last_signed_in_at'),
+})
+
 // ─── certificationStatusEnum ──────────────────────────────────────────────────
 
 export const certificationStatusEnum = pgEnum('certification_status', [
@@ -208,6 +227,8 @@ export type BusinessRule = typeof businessRules.$inferSelect
 export type WorkQueueDismissal = typeof workQueueDismissals.$inferSelect
 export type ReviewAssignment = typeof reviewAssignments.$inferSelect
 export type Certification = typeof certifications.$inferSelect
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
 export type NewApplication = typeof applications.$inferInsert
 export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
 export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]

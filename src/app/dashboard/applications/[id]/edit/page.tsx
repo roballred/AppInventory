@@ -9,8 +9,10 @@ import EditApplicationClient from './EditApplicationClient'
 
 export default async function EditApplicationPage({
   params,
+  searchParams,
 }: {
   params: { id: string }
+  searchParams: { returnTo?: string }
 }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
@@ -34,13 +36,19 @@ export default async function EditApplicationPage({
 
   if (!app) notFound()
 
+  // Allowed returnTo destinations
+  const allowedReturnTo = ['work-queue', 'certification']
+  const returnTo = allowedReturnTo.includes(searchParams.returnTo ?? '')
+    ? searchParams.returnTo
+    : undefined
+
   return (
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Application</h1>
         <p className="text-sm text-gray-500 mt-0.5">{app.name}</p>
       </div>
-      <EditApplicationClient application={app} agencyId={app.agencyId} />
+      <EditApplicationClient application={app} agencyId={app.agencyId} returnTo={returnTo} />
     </div>
   )
 }

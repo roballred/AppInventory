@@ -46,6 +46,22 @@ export async function PATCH(
     return NextResponse.json({ error: 'Certification not found' }, { status: 404 })
   }
 
+  // State machine guard — only allow valid transitions (ISSUE-13)
+  const validFromStatus: Record<string, string[]> = {
+    approve: ['submitted'],
+    request_revision: ['submitted'],
+  }
+
+  const allowedStatuses = validFromStatus[body.action] ?? []
+  if (!allowedStatuses.includes(certification.status)) {
+    return NextResponse.json(
+      {
+        error: `Cannot ${body.action.replace('_', ' ')} a certification that is currently "${certification.status}". Expected status: ${allowedStatuses.join(' or ')}.`,
+      },
+      { status: 409 }
+    )
+  }
+
   const now = new Date()
 
   if (body.action === 'approve') {

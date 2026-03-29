@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { and, eq, isNull } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth/auth'
 import { db } from '@/lib/db'
-import { applications, reviewAssignments } from '@/lib/db/schema'
+import { applications, reviewAssignments, users } from '@/lib/db/schema'
 
 // ─── POST /api/review-assignments ─────────────────────────────────────────────
 
@@ -60,6 +60,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Application not found or does not belong to your agency' }, { status: 404 })
   }
 
+  // Validate assignee exists in our users table and belongs to this agency (ISSUE-08)
+  // Note: users are auto-upserted on sign-in. If a user hasn't signed in yet, they won't
+  // be in the table — treat as not found.
+  const [assignee] = await db
+    .select({ id: users.id, agencyId: users.agencyId })
+    .from(users)
+    .where(eq(users.email, assignedToEmail))
+
+  if (!assignee) {
+    return NextResponse.json(
+      { error: `User "${assignedToEmail}" not found. They must sign in at least once before they can be assigned.` },
+      { status: 422 }
+    )
+  }
+
+  if (assignee.agencyId !== agencyId) {
+    return NextResponse.json(
+      { error: `User "${assignedToEmail}" does not belong to your agency.` },
+      { status: 422 }
+    )
+  }
+
   // Create the review assignment
   const assignedById: string = user.id ?? user.email ?? 'unknown'
   const assignedByEmail: string = user.email ?? 'unknown'
@@ -98,24 +120,19 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'No agency assigned to this user' }, { status: 400 })
     }
 
-    // Get all open assignments joined with applications for this agency
-    const agencyApps = await db
-      .select()
-      .from(applications)
-      .where(eq(applications.agencyId, agencyId))
-
-    const agencyAppIds = new Set(agencyApps.map((a) => a.id))
-
-    const allOpenAssignments = await db
-      .select()
+    // DB-level join — filter by agency directly in the query (ISSUE-09)
+    const agencyAssignments = await db
+      .select({ assignment: reviewAssignments })
       .from(reviewAssignments)
-      .where(isNull(reviewAssignments.resolvedAt))
+      .innerJoin(applications, eq(reviewAssignments.applicationId, applications.id))
+      .where(
+        and(
+          eq(applications.agencyId, agencyId),
+          isNull(reviewAssignments.resolvedAt)
+        )
+      )
 
-    const agencyAssignments = allOpenAssignments.filter((a) =>
-      agencyAppIds.has(a.applicationId)
-    )
-
-    return NextResponse.json({ assignments: agencyAssignments })
+    return NextResponse.json({ assignments: agencyAssignments.map((r) => r.assignment) })
   } else if (role === 'submitter') {
     // Return open assignments assigned to this user
     const assignments = await db

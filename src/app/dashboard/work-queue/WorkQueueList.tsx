@@ -136,7 +136,7 @@ export default function WorkQueueList({ initialItems }: WorkQueueListProps) {
                     {/* Right: action buttons */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Link
-                        href={`/dashboard/applications/${item.application.id}/edit`}
+                        href={`/dashboard/applications/${item.application.id}/edit?returnTo=work-queue`}
                         className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                       >
                         Update
