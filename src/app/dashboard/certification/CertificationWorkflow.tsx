@@ -23,7 +23,8 @@ const LIFECYCLE_LABELS: Record<string, string> = {
 }
 
 function formatDate(iso: string): string {
-  const d = new Date(iso)
+  // Append T12:00:00 to prevent UTC midnight from rolling back to the previous day in local time
+  const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso)
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 

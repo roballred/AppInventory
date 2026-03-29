@@ -388,6 +388,18 @@ export default function ApplicationForm({
               className={inputClass}
             />
           </Field>
+
+          <div className="sm:col-span-2">
+            <label className={checkboxRowClass}>
+              <input
+                type="checkbox"
+                checked={isUpdatable}
+                onChange={(e) => setIsUpdatable(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Updatable</span>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -449,16 +461,6 @@ export default function ApplicationForm({
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-sm text-gray-700">Unsupported Version</span>
-          </label>
-
-          <label className={checkboxRowClass}>
-            <input
-              type="checkbox"
-              checked={isUpdatable}
-              onChange={(e) => setIsUpdatable(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm text-gray-700">Updatable</span>
           </label>
 
           <label className={checkboxRowClass}>

@@ -146,7 +146,7 @@ export default async function DashboardPage() {
       {critical > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-5 py-4">
           <p className="text-sm font-semibold text-red-800">
-            {critical} application{critical !== 1 ? 's' : ''} are critically stale (180+ days).
+            {critical} application{critical !== 1 ? 's' : ''} {critical !== 1 ? 'are' : 'is'} critically stale (180+ days).
           </p>
           <p className="text-sm text-red-700 mt-1">
             Critically stale records must be resolved before annual certification can be submitted.

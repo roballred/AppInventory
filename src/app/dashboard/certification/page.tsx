@@ -71,7 +71,7 @@ export default async function CertificationPage() {
       <CertificationWorkflow
         certification={certification}
         year={year}
-        deadline={deadline.toISOString()}
+        deadline={`${deadline.getFullYear()}-${String(deadline.getMonth() + 1).padStart(2, '0')}-${String(deadline.getDate()).padStart(2, '0')}`}
         totalApps={totalApps}
         criticalStaleApps={criticalStaleApps}
         warningCount={warningCount}

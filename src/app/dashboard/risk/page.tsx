@@ -124,7 +124,7 @@ export default async function RiskDashboardPage() {
 
       <RiskCategorySection
         title="Approaching Staleness"
-        description="Records currently at warning level that will become critically stale within 30 days. Resolve these now to avoid certification blockers."
+        description={`Records currently at warning level that will become critically stale within ${thresholds.critical - thresholds.warning} days. Resolve these now to avoid certification blockers.`}
         items={riskData.approachingStaleness}
         agencyUsers={agencyUsers}
       />

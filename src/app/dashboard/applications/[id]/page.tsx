@@ -228,6 +228,10 @@ export default async function ApplicationDetailPage({
             <dt className="text-xs text-gray-500 mb-0.5">Retirement Date</dt>
             <dd className="text-sm text-gray-900">{formatDate(app.retirementDate)}</dd>
           </div>
+          <div>
+            <dt className="text-xs text-gray-500 mb-0.5">Updatable</dt>
+            <dd className="text-sm text-gray-900">{app.isUpdatable ? 'Yes' : 'No'}</dd>
+          </div>
         </dl>
       </section>
 
@@ -251,7 +255,6 @@ export default async function ApplicationDetailPage({
             </p>
           )}
           <BooleanField value={app.isUnsupportedVersion} label="Unsupported Version" />
-          <BooleanField value={app.isUpdatable} label="Updatable" />
           <BooleanField value={app.isAgingTechnology} label="Aging Technology" />
           <BooleanField value={app.isAiEnabled} label="AI Enabled" />
           <BooleanField value={app.isGenerativeAi} label="Generative AI" />

@@ -61,8 +61,8 @@ export interface PortfolioSummary {
 //   -10 per unverified risk flag (aging/unsupported/AI with no verification)
 // Certification bonus/penalty:
 //   not_started: -10
-//   submitted: +5
 //   approved: +10
+//   in_progress, submitted, revision_requested: neutral (0)
 // Floor: 0, ceiling: 100
 
 function computeHealthScore(row: Omit<AgencyHealthRow, 'healthScore'>, certStatus: CertificationStatus | null): number {
@@ -70,7 +70,6 @@ function computeHealthScore(row: Omit<AgencyHealthRow, 'healthScore'>, certStatu
   score -= Math.min(row.criticalCount * 20, 60)
   score -= Math.min(row.warningCount * 5, 20)
   if (certStatus === 'not_started') score -= 10
-  if (certStatus === 'submitted') score += 5
   if (certStatus === 'approved') score += 10
   return Math.max(0, Math.min(100, score))
 }
