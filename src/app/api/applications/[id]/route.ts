@@ -311,6 +311,11 @@ export async function PATCH(
     .where(and(...conditions))
     .returning()
 
+  // Agency scope is already enforced above: `existing` was fetched using `conditions`
+  // which includes `eq(applications.agencyId, agencyFilter)` when the session is
+  // agency-scoped. The audit log table has no agencyId column — scope is inherited
+  // via the applicationId FK → applications.agencyId. No raw INSERT bypass is possible
+  // because the application fetch would have returned 404 for a cross-agency request.
   await db.insert(applicationAuditLog).values({
     applicationId: params.id,
     userId: user.email ?? user.id ?? 'unknown',
