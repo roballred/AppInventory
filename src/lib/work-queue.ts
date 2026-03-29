@@ -5,15 +5,15 @@
  * excluding dismissed items and retired applications.
  */
 
-import { and, eq, gt } from 'drizzle-orm'
+import { and, eq, gt, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { applications, workQueueDismissals } from '@/lib/db/schema'
+import { applications, workQueueDismissals, reviewAssignments } from '@/lib/db/schema'
 import type { Application } from '@/lib/db/schema'
 import { getDaysSinceReview } from '@/lib/staleness'
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
-export type QueueItemReason = 'critical' | 'warning' | 'missing_fields' | 'unverified_risk'
+export type QueueItemReason = 'assigned' | 'critical' | 'warning' | 'missing_fields' | 'unverified_risk'
 export type EffortLevel = 'quick' | 'research'
 
 export interface WorkQueueItem {
@@ -143,10 +143,11 @@ function buildStalenessLabel(days: number, level: 'critical' | 'warning'): strin
 // ─── Priority sort order ───────────────────────────────────────────────────────
 
 const REASON_ORDER: Record<QueueItemReason, number> = {
-  critical: 0,
-  warning: 1,
-  missing_fields: 2,
-  unverified_risk: 3,
+  assigned: 0,
+  critical: 1,
+  warning: 2,
+  missing_fields: 3,
+  unverified_risk: 4,
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -198,10 +199,52 @@ export async function computeWorkQueue(
     dismissals.map((d) => `${d.applicationId}::${d.reason}`)
   )
 
-  // 3. Classify each application
+  // 3. Fetch open review assignments for this user (resolvedAt IS NULL)
+  const userAssignments = await db
+    .select()
+    .from(reviewAssignments)
+    .where(
+      and(
+        eq(reviewAssignments.assignedToId, userId),
+        isNull(reviewAssignments.resolvedAt)
+      )
+    )
+
+  // Build a map of applicationId → assignment for O(1) lookup
+  const assignmentMap = new Map(
+    userAssignments.map((a) => [a.applicationId, a])
+  )
+
+  // Build a Set of application IDs that have active assignments
+  const assignedAppIds = new Set(userAssignments.map((a) => a.applicationId))
+
+  // 4. Classify each application
   const items: WorkQueueItem[] = []
 
+  // Track which app IDs have already been added (assigned apps appear only once)
+  const addedAppIds = new Set<string>()
+
+  // First pass: add all assigned applications with highest priority
   for (const app of activeApps) {
+    if (!assignedAppIds.has(app.id)) continue
+
+    const assignment = assignmentMap.get(app.id)!
+    addedAppIds.add(app.id)
+
+    items.push({
+      application: app,
+      reason: 'assigned',
+      reasonLabel: `Assigned for review by ${assignment.assignedByEmail}`,
+      effortLevel: 'research',
+      effortLabel: 'Needs research',
+    })
+  }
+
+  // Second pass: add remaining applications classified by staleness / missing fields / unverified risk
+  for (const app of activeApps) {
+    // Skip apps already added as assigned — they appear only once
+    if (addedAppIds.has(app.id)) continue
+
     const days = getDaysSinceReview(app.lastReviewedAt)
 
     // Determine the highest-priority reason this app qualifies for
@@ -222,7 +265,7 @@ export async function computeWorkQueue(
 
     if (reason === null) continue
 
-    // 4. Filter out dismissed items
+    // 5. Filter out dismissed items
     const dismissKey = `${app.id}::${reason}`
     if (dismissedKeys.has(dismissKey)) continue
 
@@ -259,7 +302,7 @@ export async function computeWorkQueue(
     })
   }
 
-  // 5. Sort: by reason priority first, then by lastReviewedAt ascending (oldest first within tier)
+  // 6. Sort: by reason priority first, then by lastReviewedAt ascending (oldest first within tier)
   items.sort((a, b) => {
     const priorityDiff = REASON_ORDER[a.reason] - REASON_ORDER[b.reason]
     if (priorityDiff !== 0) return priorityDiff

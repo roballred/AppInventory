@@ -37,6 +37,12 @@ export default function SideNav({ role, isDevMode }: SideNavProps) {
       label: 'Dashboard',
       hidden: isSubmitter,
     },
+    // Risk Dashboard — agency_admin only
+    {
+      href: '/dashboard/risk',
+      label: 'Risk Dashboard',
+      hidden: !isAgencyAdmin,
+    },
     { href: '/dashboard/applications', label: 'Applications' },
     {
       href: '/dashboard/certification',

@@ -18,6 +18,11 @@ interface TierMeta {
 }
 
 const TIER_META: Record<QueueItemReason, TierMeta> = {
+  assigned: {
+    label: 'Assigned for Review',
+    icon: '📌',
+    badgeClass: 'bg-purple-100 text-purple-800 border border-purple-200',
+  },
   critical: {
     label: 'Critical — must resolve before certification',
     icon: '🔴',
@@ -45,7 +50,7 @@ const EFFORT_BADGE: Record<string, string> = {
   research: 'bg-amber-100 text-amber-800 border border-amber-200',
 }
 
-const REASON_ORDER: QueueItemReason[] = ['critical', 'warning', 'missing_fields', 'unverified_risk']
+const REASON_ORDER: QueueItemReason[] = ['assigned', 'critical', 'warning', 'missing_fields', 'unverified_risk']
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -114,6 +119,7 @@ export default function WorkQueueList({ initialItems }: WorkQueueListProps) {
                         </Link>
                         {/* Priority tier badge */}
                         <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${meta.badgeClass}`}>
+                          {reason === 'assigned' && 'Assigned'}
                           {reason === 'critical' && 'Critical'}
                           {reason === 'warning' && 'Warning'}
                           {reason === 'missing_fields' && 'Missing fields'}

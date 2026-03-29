@@ -146,6 +146,20 @@ export const workQueueDismissals = pgTable('work_queue_dismissals', {
   expiresAt: timestamp('expires_at').notNull(),
 })
 
+// ─── reviewAssignments ────────────────────────────────────────────────────────
+
+export const reviewAssignments = pgTable('review_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  applicationId: uuid('application_id').notNull().references(() => applications.id),
+  assignedById: varchar('assigned_by_id', { length: 255 }).notNull(),
+  assignedByEmail: varchar('assigned_by_email', { length: 255 }).notNull(),
+  assignedToId: varchar('assigned_to_id', { length: 255 }).notNull(),
+  assignedToEmail: varchar('assigned_to_email', { length: 255 }).notNull(),
+  assignedAt: timestamp('assigned_at').defaultNow().notNull(),
+  resolvedAt: timestamp('resolved_at'),
+  notes: text('notes'),
+})
+
 // ─── Exported types ───────────────────────────────────────────────────────────
 
 export type Agency = typeof agencies.$inferSelect
@@ -153,6 +167,7 @@ export type Application = typeof applications.$inferSelect
 export type ApplicationAuditLog = typeof applicationAuditLog.$inferSelect
 export type BusinessRule = typeof businessRules.$inferSelect
 export type WorkQueueDismissal = typeof workQueueDismissals.$inferSelect
+export type ReviewAssignment = typeof reviewAssignments.$inferSelect
 export type NewApplication = typeof applications.$inferInsert
 export type LifecycleStatus = (typeof lifecycleStatusEnum.enumValues)[number]
 export type BusinessCriticality = (typeof businessCriticalityEnum.enumValues)[number]
