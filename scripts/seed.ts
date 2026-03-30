@@ -214,26 +214,31 @@ async function seed() {
       key: 'staleness_warning_days',
       value: '90',
       description: 'Days before a record triggers a stale warning notification',
+      category: 'staleness',
     },
     {
       key: 'staleness_critical_days',
       value: '180',
       description: 'Days before a record is critically stale and blocks certification',
+      category: 'staleness',
     },
     {
       key: 'certification_reminder_days',
       value: '30',
       description: 'Days before certification deadline to send reminder notifications',
+      category: 'certification',
     },
     {
       key: 'certification_deadline_month',
       value: '9',
       description: 'Month of annual certification deadline (1-12)',
+      category: 'certification',
     },
     {
       key: 'certification_deadline_day',
       value: '30',
       description: 'Day of annual certification deadline',
+      category: 'certification',
     },
   ]
 

@@ -34,21 +34,24 @@ export async function GET(_req: NextRequest) {
   return NextResponse.json(rules)
 }
 
+// Valid category format: lowercase letters, numbers, underscores; must start with a letter
+const CATEGORY_PATTERN = /^[a-z][a-z0-9_]*$/
+
 // POST /api/admin/config — create a new business rule (platform_admin only)
-// Body: { key: string, value: string, description?: string }
+// Body: { key: string, value: string, description?: string, category?: string }
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!isAdmin(session)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  let body: { key?: string; value?: string; description?: string }
+  let body: { key?: string; value?: string; description?: string; category?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { key, value, description } = body
+  const { key, value, description, category } = body
 
   if (!key || typeof key !== 'string') {
     return NextResponse.json({ error: 'key is required' }, { status: 400 })
@@ -74,6 +77,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Value must be 999999 or less' }, { status: 400 })
   }
 
+  // Validate optional category
+  const resolvedCategory = category?.trim() || 'general'
+  if (!CATEGORY_PATTERN.test(resolvedCategory)) {
+    return NextResponse.json(
+      { error: 'Category must be lowercase letters, numbers, and underscores only (e.g. staleness)' },
+      { status: 400 }
+    )
+  }
+  if (resolvedCategory.length > 50) {
+    return NextResponse.json({ error: 'Category must be 50 characters or fewer' }, { status: 400 })
+  }
+
   // Check for duplicates
   const [existing] = await db.select().from(businessRules).where(eq(businessRules.key, key))
   if (existing) {
@@ -90,6 +105,7 @@ export async function POST(req: NextRequest) {
       key,
       value,
       description: description?.trim() || null,
+      category: resolvedCategory,
       updatedAt: now,
       updatedById: userId,
     })
@@ -101,20 +117,20 @@ export async function POST(req: NextRequest) {
 }
 
 // PUT /api/admin/config — update a single business rule (platform_admin only)
-// Body: { key: string, value: string }
+// Body: { key: string, value: string, category?: string }
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!isAdmin(session)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  let body: { key?: string; value?: string }
+  let body: { key?: string; value?: string; category?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { key, value } = body
+  const { key, value, category } = body
 
   if (!key || typeof key !== 'string') {
     return NextResponse.json({ error: 'key is required' }, { status: 400 })
@@ -177,13 +193,31 @@ export async function PUT(req: NextRequest) {
     }
   }
 
+  // Validate and resolve optional category (only applied for custom keys)
+  let resolvedCategory: string | undefined
+  if (category !== undefined && !(CORE_KEYS as readonly string[]).includes(key)) {
+    const trimmed = category.trim()
+    if (trimmed && !CATEGORY_PATTERN.test(trimmed)) {
+      return NextResponse.json(
+        { error: 'Category must be lowercase letters, numbers, and underscores only' },
+        { status: 400 }
+      )
+    }
+    resolvedCategory = trimmed || 'general'
+  }
+
   const user = session.user as any
   const userId = user.email ?? user.id ?? 'unknown'
   const now = new Date()
 
   const [updated] = await db
     .update(businessRules)
-    .set({ value, updatedAt: now, updatedById: userId })
+    .set({
+      value,
+      updatedAt: now,
+      updatedById: userId,
+      ...(resolvedCategory !== undefined ? { category: resolvedCategory } : {}),
+    })
     .where(eq(businessRules.key, key))
     .returning()
 

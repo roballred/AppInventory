@@ -133,6 +133,7 @@ export const businessRules = pgTable('business_rules', {
   key: varchar('key', { length: 100 }).primaryKey(),
   value: varchar('value', { length: 500 }).notNull(),
   description: text('description'),
+  category: varchar('category', { length: 100 }),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   updatedById: varchar('updated_by_id', { length: 255 }),
 })
